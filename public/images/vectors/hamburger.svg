@@ -1,0 +1,5 @@
+<svg id="hamburger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+  <g transform="translate(-4.0000, -4.0000) scale(1.3333)">
+    <path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+  </g>
+</svg>

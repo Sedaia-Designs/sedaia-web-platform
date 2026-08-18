@@ -1,0 +1,290 @@
+:root {
+  --color-background: hsl(307deg 26% 13%);
+  --color-surface: hsl(300deg 16% 24%);
+  --color-tech-surface: #300e27;
+  --color-border: #f4c7d9;
+  --color-link: #93c5fd;
+  --color-link-hover: #dbeafe;
+  --color-focus: #38bdf8;
+}
+
+// Document foundation
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  background-color: var(--color-background);
+  color: white;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+p,
+li {
+  line-height: 150%;
+}
+
+a,
+a:visited {
+  margin-top: 1rem;
+  color: var(--color-link);
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: 0 0 inset var(--color-link);
+  cursor: pointer;
+  transition: 150ms ease;
+}
+
+a:hover {
+  color: var(--color-link-hover);
+  box-shadow: 0 -2px inset var(--color-link-hover);
+}
+
+a:focus-visible {
+  border-radius: 0.2rem;
+  outline: 3px solid var(--color-focus);
+  outline-offset: 4px;
+}
+
+.hidden {
+  display: none;
+  opacity: 0%;
+  pointer-events: none;
+  visibility: hidden;
+}
+// Animated page background and blur state
+main {
+  isolation: isolate;
+  min-height: 100vh;
+  margin-bottom: 5rem;
+  padding-top: 5rem;
+
+  &::before,
+  &::after {
+    position: fixed;
+    z-index: 0;
+    inset: 0;
+    pointer-events: none;
+    content: "";
+  }
+
+  &::before {
+    background-color: var(--color-background);
+    background-image: url("/images/render-collage.avif");
+    background-repeat: repeat-x;
+    background-position: 0 center;
+    animation: render-collage-scroll 120s infinite linear;
+  }
+
+  &::after {
+    z-index: 1;
+    background-color: hsl(307deg 26% 13% / 10%);
+    backdrop-filter: blur(15px);
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  &.blur-backdrop {
+    &::after,
+    .container {
+      opacity: 1;
+    }
+
+    .container {
+      pointer-events: auto;
+    }
+  }
+}
+
+.blur-toggle {
+  position: fixed;
+  z-index: 3;
+  top: 1rem;
+  right: 1rem;
+}
+
+// Primary content shell
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 1020px;
+  margin: 0 auto;
+  border-radius: 1rem;
+  background-color: var(--color-surface);
+  box-shadow: 2px 5px 10px hsl(0deg 0% 0%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+
+  nav {
+    padding: 2rem 3rem 1rem 0;
+  }
+
+  header {
+    padding-top: 0;
+  }
+
+  h1 {
+    margin-top: 0;
+    font-size: 26pt;
+  }
+
+  .subtitle {
+    color: var(--color-link-hover);
+    font-size: 18pt;
+  }
+
+  .alias {
+    padding-block: 0;
+    font-size: 14pt;
+  }
+
+  .about-image {
+    float: right;
+    width: 300px;
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 16px;
+    margin-left: 24px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .site-moved {
+    $bar-color: hsl(0 40% 60%);
+    $bar-thickness: 10px;
+    padding: 3rem;
+    border-radius: 1rem;
+    background-image: linear-gradient(
+            to top,
+            $bar-color 0px,
+            $bar-color $bar-thickness,
+            hsl(0 40% 20%) $bar-thickness,
+            hsla(0 40% 20% / 50%)
+
+    );
+  }
+}
+
+header,
+article {
+  border-bottom: 1px solid var(--color-border);
+  padding: 3rem;
+}
+
+article {
+  padding-bottom: 1rem;
+
+  &:last-of-type {
+    border-bottom: 0;
+  }
+}
+
+// Link groups
+.router {
+  --color: var(--color-link);
+
+  display: flex;
+  margin-bottom: 1rem;
+
+  div {
+    padding-inline: 1rem;
+    color: var(--color);
+    border-color: var(--color);
+
+    a:hover {
+      --color: var(--color-link-hover);
+
+      box-shadow: 0 -2px inset;
+    }
+  }
+
+  &.left {
+    justify-content: left;
+
+    div {
+      padding-inline: 1rem;
+      border-right: 2px solid;
+
+      &:first-child {
+        padding-left: 0;
+      }
+
+      &:last-child {
+        border-right: 0;
+      }
+    }
+  }
+
+  &.right {
+    justify-content: right;
+
+    div {
+      padding-inline: 1rem;
+      border-left: 2px solid;
+
+      &:first-child {
+        border-left: 0;
+      }
+
+      &:last-child {
+        padding-right: 0;
+      }
+    }
+  }
+}
+
+// Technical expertise
+.tech-stacks {
+  .tech-container {
+    display: grid;
+    grid-template-columns: 50% 50%;
+    gap: 1rem;
+  }
+
+  .tech-list {
+    border-radius: 1rem;
+    background-color: var(--color-tech-surface);
+
+    h3 {
+      margin-bottom: 0;
+      padding-inline: 1rem;
+      padding-bottom: 0;
+    }
+
+    ul {
+      margin-top: 0.5rem;
+      padding-left: 1.75rem;
+    }
+  }
+}
+
+// Projects
+#software-projects {
+  .project-container {
+    border-bottom: 1px solid var(--color-border);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
+// Motion preferences and animation definitions
+@media (prefers-reduced-motion: reduce) {
+  main::before {
+    animation: none;
+  }
+}
+
+@keyframes render-collage-scroll {
+  from {
+    background-position: 0 center;
+  }
+
+  to {
+    background-position: -4752px center;
+  }
+}
