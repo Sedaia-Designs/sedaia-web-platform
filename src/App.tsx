@@ -27,6 +27,9 @@ export default function App() {
         <BackgroundArticle/>
         <TechStacksArticle/>
         <SoftwareProjectsArticle/>
+        {/* TODO: Add a section showing off my latest renders in detail, hardcode this section initially, as it will be LazyLoaded from the CDN when the CDN is initialized and setup */}
+        
+        {/* TODO: Add my Technical credentials regarding my hands on trade work */}
       </div>
     </main>
   );
