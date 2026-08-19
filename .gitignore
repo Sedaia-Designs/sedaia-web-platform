@@ -19,6 +19,8 @@ app.config.timestamp_*.js
 .classpath
 *.launch
 .settings/
+.junie
+!/.junie/guidelines.md
 
 # Temp
 gitignore
