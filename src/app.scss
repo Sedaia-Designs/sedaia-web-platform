@@ -85,9 +85,12 @@ main {
 
   &::before {
     background-color: var(--color-background);
-    background-image: url("/images/render-collage.avif");
     background-repeat: repeat-x;
     background-position: 0 center;
+  }
+
+  &.collage-loaded::before {
+    background-image: url("/images/render-collage.avif");
     animation: render-collage-scroll 120s infinite linear;
   }
 

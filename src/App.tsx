@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createEffect, createSignal, onCleanup } from 'solid-js';
 import './app.scss';
 import BackgroundArticle from './components/background-article';
 import SoftwareProjectsArticle from './components/software-projects-article';
@@ -12,9 +12,31 @@ import SiteDevWarning from "./components/side-dev-warning";
 // src/Document.tsx.
 export default function App() {
   const [blur, setBlur] = createSignal(true);
+  const [collageLoaded, setCollageLoaded] = createSignal(false);
+  let main: HTMLElement | undefined;
+
+  createEffect(() => {
+    if (!main || !('IntersectionObserver' in window)) {
+      setCollageLoaded(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+
+      setCollageLoaded(true);
+      observer.disconnect();
+    });
+
+    observer.observe(main);
+    onCleanup(() => observer.disconnect());
+  });
 
   return (
-    <main class={{'blur-backdrop': blur()}}>
+    <main
+      ref={main}
+      class={{'blur-backdrop': blur(), 'collage-loaded': collageLoaded()}}
+    >
       <CollageButton onClick={() => setBlur((isBlurred) => !isBlurred)} b={blur()}/>
 
       <div class="container" id="portfolio-content" inert={!blur()}>
