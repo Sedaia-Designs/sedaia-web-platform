@@ -15,8 +15,8 @@ export default function App() {
   const [collageLoaded, setCollageLoaded] = createSignal(false);
   let main: HTMLElement | undefined;
 
-  createEffect(() => {
-    if (!main || !('IntersectionObserver' in window)) {
+  createEffect(() => main, (element) => {
+    if (!element || !('IntersectionObserver' in window)) {
       setCollageLoaded(true);
       return;
     }
@@ -28,7 +28,7 @@ export default function App() {
       observer.disconnect();
     });
 
-    observer.observe(main);
+    observer.observe(element);
     onCleanup(() => observer.disconnect());
   });
 
