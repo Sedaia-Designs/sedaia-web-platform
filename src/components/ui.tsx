@@ -9,6 +9,7 @@ interface SwitchProps {
 }
 
 export default function Switch({ type = "flat", id, checked = false, onChange }: SwitchProps) {
+  // Styling and code taken from https://codepen.io/mallendeo/pen/QWKrEL
   const inputId = `button-${id}`;
 
   return (
