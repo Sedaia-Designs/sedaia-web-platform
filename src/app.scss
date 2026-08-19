@@ -110,6 +110,7 @@ main {
     }
   }
 }
+
 .collage-button {
   position: fixed;
   z-index: 3;
@@ -126,7 +127,6 @@ main {
   color: var(--color-link);
   font-weight: 600;
 }
-
 
 // Primary content shell
 .container {
@@ -205,11 +205,13 @@ main {
     $bar-thickness: 10px;
     padding: 3rem;
     border-radius: 1rem;
+    --bar-color: hsl(0 40% 60%);
+    --bar-thickness: 10px;
     background-image: linear-gradient(
             to top,
-            $bar-color 0px,
-            $bar-color $bar-thickness,
-            hsl(0 40% 20%) $bar-thickness,
+            var(--bar-color) 0px,
+            var(--bar-color) var(--bar-thickness),
+            hsl(0 40% 20%) var(--bar-thickness),
             hsla(0 40% 20% / 50%)
 
     );
