@@ -142,8 +142,9 @@ main {
   transition: opacity 150ms ease;
 
   #navigation {
-    padding-inline: 1.5rem;
-    margin: 1rem 1.5rem;
+    --margin: 3rem;
+    padding-inline: calc(var(--margin)/2);
+    margin: 1rem calc(var(--margin)/2);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -201,12 +202,13 @@ main {
   }
 
   .site-moved {
-    $bar-color: hsl(0 40% 60%);
-    $bar-thickness: 10px;
-    padding: 3rem;
-    border-radius: 1rem;
     --bar-color: hsl(0 40% 60%);
     --bar-thickness: 10px;
+    padding-block: 3rem;
+    padding-inline: 1.5rem;
+    border-bottom-left-radius: 1rem;
+    border-bottom-right-radius: 1rem;
+    margin-inline: 1.5rem;
     background-image: linear-gradient(
             to top,
             var(--bar-color) 0px,
