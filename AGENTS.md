@@ -7,7 +7,7 @@ TypeScript, Vite, and Sass without SolidStart, a router, or server runtime.
 `vite build` emits the deployable static site in `dist/client`.
 
 Dynamic public content may be fetched from sibling project
-`../sedaia-main-api`. Do not connect this frontend directly to
+`../sedaia-central-api`. Do not connect this frontend directly to
 `sedaia-main-db`, add server-only behavior, or introduce SolidStart unless the
 deployment architecture is intentionally reconsidered across the workspace.
 
