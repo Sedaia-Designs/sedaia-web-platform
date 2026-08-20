@@ -1,12 +1,12 @@
 import { createEffect, createSignal, onCleanup } from 'solid-js';
 import './app.scss';
-import BackgroundArticle from './components/background-article';
-import SoftwareProjectsArticle from './components/software-projects-article';
-import TechStacksArticle from './components/tech-stacks-article';
-import Header from "./components/header";
-import Navigation from "./components/navigation";
+import BackgroundArticle from './components/sections/background-article';
+import SoftwareProjectsArticle from './components/sections/software-projects-article';
+import TechStacksArticle from './components/sections/tech-stacks-article';
+import Header from "./components/sections/header";
+import Navigation from "./components/sections/navigation";
 import CollageButton from "./components/collage-button";
-import SiteDevWarning from "./components/side-dev-warning";
+import SiteDevWarning from "./components/sections/side-dev-warning";
 
 // The app root: the central content component — the document shell lives in
 // src/Document.tsx.

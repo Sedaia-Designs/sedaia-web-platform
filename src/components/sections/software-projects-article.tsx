@@ -1,8 +1,10 @@
 export default function SoftwareProjectsArticle() {
   return (
     <article id="software-projects">
-      <h2>Software Projects</h2>
-      <p>All software projects I've made so far are pet projects designed to help level up my skills while providing a genuine utility to other designers or programmers.</p>
+      <h2>Technical Achievements</h2>
+      <p>
+        A collection of technical achievements in software engineering, custom tooling, and workflow automation designed to solve real-world pipeline challenges and provide practical utility to designers and developers.
+      </p>
       <div class="project-container">
         <h3>Blender Development for Pycharm</h3>
         <div class="router left">
@@ -15,7 +17,7 @@ export default function SoftwareProjectsArticle() {
         <p>The plugin is currently at version 1.0.0 Beta 3, with the main development being focused on refinement and security in preparation for a full 1.0.0 release.</p>
       </div>
       <div class="project-container">
-        <h3>Advanced Character Rig</h3>
+        <h3 id={"heading-advanced-character-rig"}>Advanced Character Rig</h3>
         <div class="router left">
           <div class="project-link"><a href="https://www.sedaia-designs.org/projects/sakura-character-rig">Project Page</a></div>
           <div class="project-link"><a href="https://gitlab.com/sedaia-designs/advanced-character-rig">Source</a></div>

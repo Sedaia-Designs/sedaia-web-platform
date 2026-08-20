@@ -30,5 +30,4 @@ export default function IconBundle(props: IconBundleProps) {
       )}
     </Show>
   );
-
 }

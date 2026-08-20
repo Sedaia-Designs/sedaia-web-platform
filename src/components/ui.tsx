@@ -1,6 +1,3 @@
-
-
-
 interface SwitchProps {
   type?: "flat";
   id: string;

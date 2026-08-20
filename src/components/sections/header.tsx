@@ -1,7 +1,7 @@
 export default function Header() {
   return <header>
     <img
-      src="images/iowa_motor_speedway_garage_selfie.avif"
+      src="/images/iowa_motor_speedway_garage_selfie.avif"
       alt="Selfie of my at the IndyCar Race at Iowa Motor Speedway in June 2025"
       width="300px"
       class="about-image"
