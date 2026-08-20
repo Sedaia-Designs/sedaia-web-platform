@@ -23,15 +23,15 @@ export default function GetInTouch() {
             target={"_blank"}
             class={"button"}
           >
-            <IconBundle name={"discord"} /> Direct Message
+            <IconBundle name={"discord"} /> Discord
           </a>
           <a
-            href={"https://discord.com/invite/Qk4pfbG7Pf"}
+            href={"https://t.me/SakuraSedaia"}
             rel={"noreferrer noopener"}
             target={"_blank"}
             class={"button"}
           >
-            <IconBundle name={"discord"} /> Server
+            <IconBundle name={"telegram"} /> Telegram
           </a>
         </div>
       </article>

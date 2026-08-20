@@ -21,6 +21,7 @@ export default function IconBundle({ name, class: className, ...others }: IconBu
     "twitch": "bi-logos-twitch",
     "twitter": "bi-logos-twitter",
     "patreon": "bi-logos-patreon",
+    "telegram": "bi-logos-telegram",
     "envelope": "bi-envelope",
     "globe": "bi-globe",
     "arrow-down": "arrow-down",
