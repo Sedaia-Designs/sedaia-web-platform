@@ -1,3 +1,5 @@
+@use "styles/image-modal";
+
 :root {
   --color-background: hsl(307deg 5% 13%);
   --color-surface-1: hsl(300deg 20% 10%);
@@ -319,16 +321,64 @@ article {
 }
 
 // Projects
-#software-projects {
+#software-projects,
+#render-projects {
   gap: 1rem;
+
   .project-container {
     background-color: var(--color-surface-2);
     border-radius: 16px;
     padding: 1rem;
     margin-block: 1rem;
     box-shadow: var(--box-shadow);
+
     &:last-child {
       border-bottom: 0;
+    }
+  }
+
+
+  h3 {
+    margin-top: 0;
+    padding-top: 0;
+  }
+  .render-card {
+    margin: 1rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    img {
+      border: 2px solid var(--color-border);
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 0 0 var(--color-link);
+
+      transition: 200ms ease-out;
+      &:hover {
+        transform: scale(101%);
+        box-shadow: 0 0 10px var(--color-link);
+      }
+    }
+
+    .render-placeholder {
+      min-height: 200px;
+      background-color: var(--color-surface-1);
+      border: 2px dashed var(--color-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-link);
+      font-weight: 500;
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+
+    figcaption {
+      color: white;
+      font-size: 0.95rem;
+      line-height: 150%;
     }
   }
 }

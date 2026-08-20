@@ -2,6 +2,7 @@ import { createEffect, createSignal, onCleanup } from 'solid-js';
 import './app.scss';
 import BackgroundArticle from './components/sections/background-article';
 import SoftwareProjectsArticle from './components/sections/software-projects-article';
+import RenderProjectsArticle from './components/sections/render-projects-article';
 import TechStacksArticle from './components/sections/tech-stacks-article';
 import Header from "./components/sections/header";
 import Navigation from "./components/sections/navigation";
@@ -49,8 +50,7 @@ export default function App() {
         <BackgroundArticle/>
         <TechStacksArticle/>
         <SoftwareProjectsArticle/>
-        {/* TODO: Add a section showing off my latest renders in detail, hardcode this section initially, as it will be LazyLoaded from the CDN when the CDN is initialized and setup */}
-        
+        <RenderProjectsArticle/>
         {/* TODO: Add my Technical credentials regarding my hands on trade work */}
       </div>
     </main>
