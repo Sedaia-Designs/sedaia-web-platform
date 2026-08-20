@@ -8,6 +8,7 @@ import Header from "./components/sections/header";
 import Navigation from "./components/sections/navigation";
 import CollageButton from "./components/collage-button";
 import SiteDevWarning from "./components/sections/side-dev-warning";
+import GetInTouch from "~/components/sections/get-in-touch";
 
 // The app root: the central content component — the document shell lives in
 // src/Document.tsx.
@@ -42,16 +43,14 @@ export default function App() {
 
       <div class="container" id="portfolio-content" inert={!blur()}>
         <SiteDevWarning/>
-        
         <Navigation/>
-        
         <Header/>
-        
         <BackgroundArticle/>
         <TechStacksArticle/>
         <SoftwareProjectsArticle/>
         <RenderProjectsArticle/>
         {/* TODO: Add my Technical credentials regarding my hands on trade work */}
+        <GetInTouch/>
       </div>
     </main>
   );
