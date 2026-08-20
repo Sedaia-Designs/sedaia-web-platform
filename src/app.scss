@@ -108,6 +108,7 @@ h2 {
     background-color: var(--color-surface-1);
     color: var(--color-link-hover);
     box-shadow: 0 0 0.5rem hsl(from var(--color-link) h s l / 0.6);
+    transform: scale(105%);
   }
 
   &:active {
