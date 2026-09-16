@@ -12,6 +12,7 @@ paths:
     get:
       operationId: getPortfolio
       summary: Get public portfolio information
+      security: []
       tags:
         - Portfolio
       responses:
