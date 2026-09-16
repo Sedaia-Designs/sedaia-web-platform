@@ -1,0 +1,77 @@
+stages:
+  - validate
+
+default:
+  interruptible: true
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+.pnpm-job:
+  image: node:22.18.0
+  stage: validate
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store/
+api:
+  image: eclipse-temurin:21-jdk
+  stage: validate
+  script:
+    - ./gradlew :apps:api:check --no-daemon
+  rules:
+    - changes:
+        - apps/api/**/*
+        - build.gradle.kts
+        - settings.gradle.kts
+        - gradle.properties
+        - gradle/**/*
+        - gradlew
+        - .gitlab-ci.yml
+
+business-site:
+  extends: .pnpm-job
+  script:
+    - pnpm --filter @sedaia-designs/business-site lint
+    - pnpm --filter @sedaia-designs/business-site test
+    - pnpm --filter @sedaia-designs/business-site build
+  rules:
+    - changes:
+        - apps/business/**/*
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .gitlab-ci.yml
+
+portfolio:
+  extends: .pnpm-job
+  script:
+    - pnpm --filter @sedaia-designs/portfolio lint
+    - pnpm --filter @sedaia-designs/portfolio build
+  rules:
+    - changes:
+        - apps/portfolio/**/*
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .gitlab-ci.yml
+
+api-contract:
+  extends: .pnpm-job
+  script:
+    - pnpm contract:lint
+  rules:
+    - changes:
+        - packages/api-client/**/*
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - .gitlab-ci.yml
