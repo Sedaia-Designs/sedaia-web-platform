@@ -81,6 +81,8 @@ GitLab CI uses path-filtered jobs so unrelated applications do not build:
 - Business-site changes run lint, tests, and a production build.
 - Portfolio changes run lint and a production build.
 - API-contract changes lint the OpenAPI document.
+- API changes on the default branch deploy the container to Cloud Run after
+  validation succeeds.
 
 Changes to shared workspace files intentionally trigger every affected pnpm
 job. See `.gitlab-ci.yml` for the exact path rules.
@@ -102,10 +104,12 @@ also rewrites unmatched client-side routes to `index.html`; existing static
 files continue to be served directly. Keep environment variables and domains
 scoped to their respective Vercel project.
 
-The API is deployed separately to Cloud Run only after its tests and container
-validation pass. CI validates artifacts but does not deploy them; deployment
-credentials and protected production jobs must remain isolated per
-application.
+The API deployment job builds and pushes a commit-addressed container image,
+then deploys it to Cloud Run using GitLab workload identity federation. After
+deployment, CI waits for `/health/ready`, verifies that `/v1/portfolio/`
+returns HTTP 200 with JSON, and prints the deployed revision and image digest.
+Any failed operational or application smoke test fails the deployment job.
+Cloud Run credentials remain scoped to the API deployment job.
 
 For rollback, redeploy the last known-good Vercel deployment for the affected
 site or route Cloud Run traffic back to the prior revision. Do not roll back an

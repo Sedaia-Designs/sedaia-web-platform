@@ -1,5 +1,6 @@
 stages:
   - validate
+  - deploy
 
 default:
   interruptible: true
@@ -74,4 +75,58 @@ api-contract:
         - package.json
         - pnpm-lock.yaml
         - pnpm-workspace.yaml
+        - .gitlab-ci.yml
+
+deploy-api:
+  image: google/cloud-sdk:alpine
+  stage: deploy
+  services:
+    - name: docker:27-dind
+      alias: docker
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: $WIF_PROVIDER_AUDIENCE
+  variables:
+    GCP_PROJECT_ID: "sedaia-web-platform-api-508804"
+    GCP_REGION: "us-central1"
+    ARTIFACT_REGISTRY_REPO: "sedaia-repo"
+    CLOUD_RUN_SERVICE: "sedaia-api"
+    WIF_PROVIDER_NAME: "//iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
+    WIF_PROVIDER_AUDIENCE: "https://iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
+    GCP_SERVICE_ACCOUNT: "gitlab-ci-deployer@sedaia-web-platform-api-508804.iam.gserviceaccount.com"
+    CLOUD_RUN_SERVICE_ACCOUNT: "sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com"
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+  before_script:
+    - apk add --no-cache curl docker-cli jq
+  script:
+    - printf '%s' "$GCP_ID_TOKEN" > /tmp/gcp-oidc-token
+    - gcloud iam workload-identity-pools create-cred-config "$WIF_PROVIDER_NAME" --service-account="$GCP_SERVICE_ACCOUNT" --output-file=/tmp/gcp-wif-creds.json --credential-source-file=/tmp/gcp-oidc-token
+    - gcloud auth login --cred-file=/tmp/gcp-wif-creds.json
+    - gcloud config set project "$GCP_PROJECT_ID"
+    - gcloud auth configure-docker "${GCP_REGION}-docker.pkg.dev" --quiet
+    - IMAGE_URI="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPO}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHA}"
+    - docker build --tag "$IMAGE_URI" .
+    - docker push "$IMAGE_URI"
+    - gcloud run deploy "$CLOUD_RUN_SERVICE" --image="$IMAGE_URI" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --service-account="$CLOUD_RUN_SERVICE_ACCOUNT" --allow-unauthenticated --port=8080 --quiet
+    - SERVICE_URL="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.url)')"
+    - DEPLOYED_REVISION="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.latestReadyRevisionName)')"
+    - IMAGE_DIGEST="$(gcloud run revisions describe "$DEPLOYED_REVISION" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.imageDigest)')"
+    - test -n "$SERVICE_URL"
+    - test -n "$DEPLOYED_REVISION"
+    - test -n "$IMAGE_DIGEST"
+    - |
+      printf 'Deployed service URL: %s\nDeployed revision: %s\nImage digest: %s\n' \
+        "$SERVICE_URL" "$DEPLOYED_REVISION" "$IMAGE_DIGEST"
+    - sh scripts/verify-api-deployment.sh "$SERVICE_URL"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - apps/api/**/*
+        - build.gradle.kts
+        - settings.gradle.kts
+        - gradle.properties
+        - gradle/**/*
+        - gradlew
+        - scripts/verify-api-deployment.sh
         - .gitlab-ci.yml
