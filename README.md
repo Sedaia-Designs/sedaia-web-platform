@@ -105,19 +105,41 @@ also rewrites unmatched client-side routes to `index.html`; existing static
 files continue to be served directly. Keep environment variables and domains
 scoped to their respective Vercel project.
 
+The Portfolio production environment must define `VITE_API_BASE_URL` as
+`https://api.sedaia-designs.org`. This exposes only the public API origin to a
+future asynchronous client helper; the current static portfolio has no runtime
+dependency on the API.
+
 The API deployment job is a blocking manual action on the default branch. It
 serializes production releases, builds and pushes a commit-addressed container
 image, then deploys it to Cloud Run using GitLab workload identity federation.
 After deployment, CI waits for `/health/ready`, verifies that
-`/v1/portfolio/` returns HTTP 200 with JSON, and prints the deployed revision
-and image digest. Any failed operational or application smoke test fails the
-deployment job. Cloud Run credentials remain scoped to the API deployment job.
+`/v1/portfolio/` returns HTTP 200 with JSON and permits the production
+Portfolio origin through CORS, and prints the deployed revision and image
+digest. Any failed operational or application smoke test fails the deployment
+job. Cloud Run credentials remain scoped to the API deployment job.
 
-For rollback, redeploy the last known-good Vercel deployment for the affected
-site or route Cloud Run traffic back to the prior revision. Do not roll back an
-unrelated application. During the portfolio migration window, the preserved
-source repository and its known-good Vercel configuration remain the final
-fallback.
+The production Cloud Run service is deployed in `us-central1` using
+`sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com` as
+its runtime identity. It accepts unauthenticated traffic from all ingress,
+listens on port `8080`, and uses one CPU, `512Mi` of memory, concurrency `40`,
+and a 30-second request timeout. It scales to zero when idle and is capped at
+three instances. The separate deployment identity remains configured through
+the `GCP_SERVICE_ACCOUNT` CI variable.
+
+Successful API deployments publish a 30-day machine-readable release manifest
+containing the immutable image digest, Cloud Run revision, verification
+evidence, and final traffic target. API rollback is a protected, manual,
+serialized GitLab job: it accepts only a known-good release manifest, prefers
+routing to its existing revision, falls back to the recorded digest without a
+rebuild, and reruns the same production verification. Monitoring and retention
+setup, alert response guidance, and the controlled drill procedure are in
+[operations/ROLLBACK_AND_OBSERVABILITY.md](operations/ROLLBACK_AND_OBSERVABILITY.md).
+
+For a frontend rollback, redeploy the last known-good Vercel deployment for the
+affected site. Do not roll back an unrelated application. During the portfolio
+migration window, the preserved source repository and its known-good Vercel
+configuration remain the final fallback.
 
 The architecture decisions and migration safeguards are recorded in
 [PLAN.md](PLAN.md).

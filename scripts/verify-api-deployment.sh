@@ -2,17 +2,20 @@
 
 set -eu
 
-if [ "$#" -ne 1 ]; then
-  printf 'Usage: %s SERVICE_URL\n' "$0" >&2
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  printf 'Usage: %s SERVICE_URL [RESULT_FILE]\n' "$0" >&2
   exit 2
 fi
 
 readonly base_url="${1%/}"
+readonly result_file="${2:-}"
 readonly timeout_seconds="${DEPLOYMENT_READINESS_TIMEOUT_SECONDS:-60}"
 readonly retry_delay_seconds="${DEPLOYMENT_READINESS_RETRY_DELAY_SECONDS:-2}"
+readonly portfolio_origin="${PORTFOLIO_ORIGIN:-https://sakura-sedaia.com}"
 readonly response_directory="$(mktemp -d)"
 readonly readiness_body="${response_directory}/readiness.json"
 readonly portfolio_body="${response_directory}/portfolio.json"
+readonly portfolio_headers="${response_directory}/portfolio-headers.txt"
 
 cleanup() {
   rm -rf "${response_directory}"
@@ -81,6 +84,8 @@ portfolio_status="$(
   curl \
     --silent \
     --show-error \
+    --header "Origin: ${portfolio_origin}" \
+    --dump-header "${portfolio_headers}" \
     --output "${portfolio_body}" \
     --write-out '%{http_code}' \
     --connect-timeout 3 \
@@ -99,6 +104,22 @@ if [ "${portfolio_status}" != "200" ]; then
   exit 1
 fi
 
+allowed_origin="$(
+  awk '
+    tolower($0) ~ /^access-control-allow-origin:/ {
+      sub(/^[^:]*:[[:space:]]*/, "")
+      sub(/\r$/, "")
+      print
+    }
+  ' "${portfolio_headers}" | tail -n 1
+)"
+
+if [ "${allowed_origin}" != "${portfolio_origin}" ]; then
+  printf 'Portfolio CORS check expected Access-Control-Allow-Origin: %s but received %s.\n' \
+    "${portfolio_origin}" "${allowed_origin:-<missing>}" >&2
+  exit 1
+fi
+
 if ! jq --exit-status 'type == "object"' "${portfolio_body}" >/dev/null; then
   printf 'Portfolio smoke test did not return a JSON object.\n' >&2
   cat "${portfolio_body}" >&2
@@ -106,4 +127,19 @@ if ! jq --exit-status 'type == "object"' "${portfolio_body}" >/dev/null; then
   exit 1
 fi
 
-printf 'Portfolio smoke test passed with HTTP 200 and JSON.\n'
+printf 'Portfolio smoke test passed with HTTP 200, JSON, and CORS for %s.\n' \
+  "${portfolio_origin}"
+
+if [ -n "${result_file}" ]; then
+  jq --null-input \
+    --arg checked_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    --arg readiness_url "${base_url}/health/ready" \
+    --arg portfolio_url "${base_url}/v1/portfolio/" \
+    --arg portfolio_origin "${portfolio_origin}" \
+    '{
+      checked_at: $checked_at,
+      readiness: {passed: true, http_status: 200, url: $readiness_url},
+      portfolio_json: {passed: true, http_status: 200, url: $portfolio_url},
+      portfolio_cors: {passed: true, allowed_origin: $portfolio_origin}
+    }' > "${result_file}"
+fi

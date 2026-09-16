@@ -1,0 +1,29 @@
+{
+  "displayName": "sedaia-api: HTTP 5xx rate above 5 percent",
+  "combiner": "AND_WITH_MATCHING_RESOURCE",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: 5xx responses exceeded 5% for five minutes with at least 20 requests per five minutes. Dashboard/logs: https://console.cloud.google.com/run/detail/us-central1/sedaia-api/metrics?project=sedaia-web-platform-api-508804. First checks: split errors by revision and inspect exception logs. Roll back when errors correlate with the active release and cannot be mitigated promptly. Owner: __NOTIFICATION_OWNER__."},
+  "conditions": [
+    {
+      "displayName": "5xx ratio above 5 percent",
+      "conditionThreshold": {
+        "filter": "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"sedaia-api\" AND resource.label.location=\"us-central1\" AND metric.label.response_code_class=\"5xx\"",
+        "denominatorFilter": "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"sedaia-api\" AND resource.label.location=\"us-central1\"",
+        "comparison": "COMPARISON_GT", "thresholdValue": 0.05, "duration": "300s",
+        "aggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.service_name"]}],
+        "denominatorAggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.service_name"]}],
+        "trigger": {"count": 1}
+      }
+    },
+    {
+      "displayName": "At least 20 requests in five minutes",
+      "conditionThreshold": {
+        "filter": "metric.type=\"run.googleapis.com/request_count\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"sedaia-api\" AND resource.label.location=\"us-central1\"",
+        "comparison": "COMPARISON_GT", "thresholdValue": 19, "duration": "0s",
+        "aggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.service_name"]}],
+        "trigger": {"count": 1}
+      }
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 stages:
   - validate
   - deploy
+  - rollback
 
 default:
   interruptible: true
@@ -93,6 +94,7 @@ deploy-api:
     GCP_REGION: "us-central1"
     ARTIFACT_REGISTRY_REPO: "sedaia-repo"
     CLOUD_RUN_SERVICE: "sedaia-api"
+    PUBLIC_API_URL: "https://api.sedaia-designs.org"
     WIF_PROVIDER_NAME: "//iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
     WIF_PROVIDER_AUDIENCE: "https://iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
     GCP_SERVICE_ACCOUNT: "gitlab-ci-deployer@sedaia-web-platform-api-508804.iam.gserviceaccount.com"
@@ -110,7 +112,23 @@ deploy-api:
     - IMAGE_URI="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPO}/${CLOUD_RUN_SERVICE}:${CI_COMMIT_SHA}"
     - docker build --tag "$IMAGE_URI" .
     - docker push "$IMAGE_URI"
-    - gcloud run deploy "$CLOUD_RUN_SERVICE" --image="$IMAGE_URI" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --service-account="$CLOUD_RUN_SERVICE_ACCOUNT" --allow-unauthenticated --port=8080 --quiet
+    - |
+      gcloud run deploy "$CLOUD_RUN_SERVICE" \
+        --image="$IMAGE_URI" \
+        --project="$GCP_PROJECT_ID" \
+        --region="$GCP_REGION" \
+        --port=8080 \
+        --service-account="$CLOUD_RUN_SERVICE_ACCOUNT" \
+        --ingress=all \
+        --allow-unauthenticated \
+        --min-instances=0 \
+        --max-instances=3 \
+        --memory=512Mi \
+        --cpu=1 \
+        --concurrency=40 \
+        --timeout=30s \
+        --update-labels="source-commit=${CI_COMMIT_SHA},gitlab-pipeline=${CI_PIPELINE_ID}" \
+        --quiet
     - SERVICE_URL="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.url)')"
     - DEPLOYED_REVISION="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.latestReadyRevisionName)')"
     - IMAGE_DIGEST="$(gcloud run revisions describe "$DEPLOYED_REVISION" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format='value(status.imageDigest)')"
@@ -120,7 +138,15 @@ deploy-api:
     - |
       printf 'Deployed service URL: %s\nDeployed revision: %s\nImage digest: %s\n' \
         "$SERVICE_URL" "$DEPLOYED_REVISION" "$IMAGE_DIGEST"
-    - sh scripts/verify-api-deployment.sh "$SERVICE_URL"
+    - mkdir -p release-manifests
+    - sh scripts/verify-api-deployment.sh "$SERVICE_URL" release-manifests/verification.json
+    - FINAL_TRAFFIC_REVISION="$(gcloud run services describe "$CLOUD_RUN_SERVICE" --region="$GCP_REGION" --project="$GCP_PROJECT_ID" --format=json | jq -r '.status.traffic[] | select(.percent == 100) | .revisionName')"
+    - test "$FINAL_TRAFFIC_REVISION" = "$DEPLOYED_REVISION"
+    - export SERVICE_URL DEPLOYED_REVISION IMAGE_DIGEST FINAL_TRAFFIC_REVISION
+    - sh scripts/create-release-manifest.sh release-manifests/verification.json release-manifests/release.json
+    - |
+      jq '{status, deployed_at, commit: .source.commit_sha, revision: .cloud_run.revision, image: .artifact.digest_reference, traffic: .production_traffic}' \
+        release-manifests/release.json
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       changes:
@@ -131,6 +157,7 @@ deploy-api:
         - gradle/**/*
         - gradlew
         - scripts/verify-api-deployment.sh
+        - scripts/create-release-manifest.sh
         - .gitlab-ci.yml
         - Dockerfile
         - .dockerignore
@@ -146,3 +173,53 @@ deploy-api:
     when:
       - runner_system_failure
       - stuck_or_timeout_failure
+  artifacts:
+    name: "api-release-${CI_COMMIT_SHA}"
+    paths:
+      - release-manifests/release.json
+      - release-manifests/verification.json
+    expire_in: 30 days
+    when: on_success
+
+rollback-api:
+  image: google/cloud-sdk:alpine
+  stage: rollback
+  needs: []
+  id_tokens:
+    GCP_ID_TOKEN:
+      aud: $WIF_PROVIDER_AUDIENCE
+  variables:
+    GCP_PROJECT_ID: "sedaia-web-platform-api-508804"
+    GCP_REGION: "us-central1"
+    CLOUD_RUN_SERVICE: "sedaia-api"
+    WIF_PROVIDER_NAME: "//iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
+    WIF_PROVIDER_AUDIENCE: "https://iam.googleapis.com/projects/937577648690/locations/global/workloadIdentityPools/gitlab-pool/providers/gitlab-provider"
+    GCP_SERVICE_ACCOUNT: "gitlab-ci-deployer@sedaia-web-platform-api-508804.iam.gserviceaccount.com"
+    CLOUD_RUN_SERVICE_ACCOUNT: "sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com"
+  before_script:
+    - apk add --no-cache curl jq
+    - test -n "$ROLLBACK_RELEASE_MANIFEST"
+    - test -n "$ROLLBACK_REASON"
+    - printf '%s' "$GCP_ID_TOKEN" > /tmp/gcp-oidc-token
+    - gcloud iam workload-identity-pools create-cred-config "$WIF_PROVIDER_NAME" --service-account="$GCP_SERVICE_ACCOUNT" --output-file=/tmp/gcp-wif-creds.json --credential-source-file=/tmp/gcp-oidc-token
+    - gcloud auth login --cred-file=/tmp/gcp-wif-creds.json
+  script:
+    - printf '%s' "$ROLLBACK_RELEASE_MANIFEST" > supplied-release.json
+    - sh scripts/verify-release-manifest-provenance.sh supplied-release.json verified-release.json
+    - sh scripts/rollback-api.sh verified-release.json
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+      allow_failure: false
+  environment:
+    name: production
+    deployment_tier: production
+    action: start
+  resource_group: production-api
+  artifacts:
+    name: "api-rollback-${CI_PIPELINE_ID}"
+    paths:
+      - rollback-manifest.json
+      - rollback-verification.json
+    expire_in: 30 days
+    when: always

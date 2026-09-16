@@ -1,0 +1,17 @@
+{
+  "displayName": "sedaia-api: container startup failure",
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: a Cloud Run revision failed during container startup. Logs: https://console.cloud.google.com/run/detail/us-central1/sedaia-api/logs?project=sedaia-web-platform-api-508804. First checks: inspect the failing revision's startup, port, health, and configuration errors. Roll back before shifting traffic when the new revision cannot become ready. Owner: __NOTIFICATION_OWNER__."},
+  "conditions": [{
+    "displayName": "Any startup failure",
+    "conditionThreshold": {
+      "filter": "metric.type=\"logging.googleapis.com/user/sedaia_api_startup_failures\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"sedaia-api\" AND resource.label.location=\"us-central1\"",
+      "comparison": "COMPARISON_GT", "thresholdValue": 0, "duration": "0s",
+      "aggregations": [{"alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_RATE", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.service_name"]}],
+      "trigger": {"count": 1}
+    }
+  }],
+  "alertStrategy": {"notificationRateLimit": {"period": "300s"}, "autoClose": "1800s"}
+}

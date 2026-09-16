@@ -1,0 +1,18 @@
+{
+  "displayName": "sedaia-api: readiness unavailable",
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: /health/ready failed twice. Dashboard/logs: https://console.cloud.google.com/run/detail/us-central1/sedaia-api/logs?project=sedaia-web-platform-api-508804. First checks: inspect revision health, startup logs, and dependencies. Roll back when the active revision caused the failures and recovery is not immediate. Owner: __NOTIFICATION_OWNER__."},
+  "conditions": [{
+    "displayName": "Two consecutive readiness failures",
+    "conditionThreshold": {
+      "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"__UPTIME_CHECK_ID__\"",
+      "comparison": "COMPARISON_LT",
+      "thresholdValue": 1,
+      "duration": "60s",
+      "aggregations": [{"alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_NEXT_OLDER"}],
+      "trigger": {"count": 1}
+    }
+  }]
+}
