@@ -130,3 +130,17 @@ deploy-api:
         - gradlew
         - scripts/verify-api-deployment.sh
         - .gitlab-ci.yml
+        - Dockerfile
+        - .dockerignore
+      when: manual
+      allow_failure: false
+  environment:
+    name: production
+    deployment_tier: production
+  resource_group: production-api
+  timeout: 30 minutes
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
