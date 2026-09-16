@@ -69,9 +69,6 @@ The references are migration inputs, not directories to copy wholesale. Only int
 │   ├── api-client/          # Typed TypeScript API client/contracts
 │   ├── design-tokens/       # Shared colors, typography, spacing, and other tokens
 │   └── shared-config/       # Shared frontend tooling configuration where useful
-├── infrastructure/
-│   ├── cloud-run/           # API deployment configuration
-│   └── vercel/              # Shared deployment notes/configuration
 ├── buildSrc/                # Gradle convention plugins for JVM modules
 ├── gradle/
 ├── package.json             # Root scripts and pnpm workspace entry point
@@ -178,7 +175,7 @@ The repository will have three logical environments:
 CI must run affected builds where possible, plus contract checks when either the API schema or API client changes. Production deployment responsibilities are split:
 
 - Vercel deploys each frontend from its application directory.
-- Google Cloud builds and deploys the API container to Cloud Run.
+- GitLab CI builds the API container and deploys it to Cloud Run.
 - Production API deployment runs only after JVM tests and container validation pass.
 - Database migrations, if introduced, run as an explicit deployment step or Cloud Run job, never implicitly on every application instance startup.
 
