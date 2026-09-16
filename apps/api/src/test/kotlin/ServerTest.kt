@@ -13,6 +13,28 @@ import kotlin.test.assertTrue
 class ServerTest {
 
   @Test
+  fun `liveness endpoint responds with json`() = testApplication {
+    configure()
+
+    val response = client.get("/health/live")
+
+    assertEquals(HttpStatusCode.OK, response.status)
+    assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+    assertEquals("{}", response.bodyAsText())
+  }
+
+  @Test
+  fun `readiness endpoint responds with json`() = testApplication {
+    configure()
+
+    val response = client.get("/health/ready")
+
+    assertEquals(HttpStatusCode.OK, response.status)
+    assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+    assertEquals("{}", response.bodyAsText())
+  }
+
+  @Test
   fun `versioned root endpoint responds`() = testApplication {
     configure()
 
