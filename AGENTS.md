@@ -13,3 +13,41 @@ files may add project-level guidance but must not weaken these rules.
   repository file-editing tools.
 - If a task cannot be completed through the shell, stop and explain what the
   user must do manually instead of attempting graphical automation.
+
+
+## Git Guidelines
+
+### Staging
+
+- Inspect `git status` and the relevant diffs before staging anything.
+- Stage only files that belong to the requested change; never include unrelated user work or generated files.
+- Prefer explicit file paths over `git add .` or `git add -A`.
+- Review the staged diff with `git diff --staged` before committing.
+- Do not discard, overwrite, reset, or otherwise alter existing user changes to produce a clean working tree.
+
+### Commits
+
+- Create a commit only when the user explicitly requests one.
+- Keep each commit focused on one cohesive change and ensure its staged contents match its description.
+- Use the required format `[Type: module]: Description`.
+- Use a short, meaningful module name identifying the affected area, such as `ktor`, `solidjs`, `gradle`, `docs`, or `git`.
+- The module may be omitted when the change spans the entire repository, has no meaningful single module, or including it would prevent the message from meeting the length limit. The resulting format is `[Type]: Description`.
+- Use an appropriate, consistently capitalized type such as `Add`, `Fix`, `Update`, `Refactor`, `Test`, `Docs`, `Build`, or `Chore`.
+- Write the description in the imperative mood, start it with a capital letter, and do not end it with a period.
+- Limit the complete commit message to 150 characters, including the prefix, spaces, and punctuation.
+- Do not amend, squash, rewrite, or otherwise modify existing commits unless the user explicitly requests it.
+
+Examples:
+
+```text
+[Add: solidjs]: Configure the frontend development proxy
+[Fix: gradle]: Run pnpm installs in a non-interactive environment
+[Docs]: Explain the production build workflow
+```
+
+### Pushing
+
+- Push only when the user explicitly requests it.
+- Before pushing, verify the current branch, configured remote, intended upstream, and commits that will be sent.
+- Use a normal push by default; never force-push unless the user explicitly requests it and the exact target has been verified.
+- Report the destination remote and branch after a successful push, or clearly report any failure without repeatedly retrying unsafe alternatives.
