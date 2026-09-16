@@ -1,0 +1,48 @@
+packages:
+  - apps/*
+  - packages/*
+
+catalog:
+  '@eslint/js': ^10.0.1
+  '@solidjs/vite-plugin': 3.0.0-next.43
+  '@solidjs/web': 2.0.0-rc.8
+  '@typescript-eslint/parser': ^8.44.0
+  autoprefixer: ^10.5.4
+  eslint: ^10.8.1
+  eslint-plugin-solid: ~0.18.0
+  postcss: ^8.5.26
+  prettier: ^3.9.6
+  solid-js: 2.0.0-rc.8
+  typescript: ^5.9.2
+  vite: ^8.1.5
+
+catalogs:
+  business:
+    '@solidjs/diagnostics': 2.0.0-rc.6
+    '@solidjs/meta': 1.0.0-next.2
+    '@solidjs/router': 2.0.0-next.21
+    '@solidjs/testing-library': 1.0.0-beta.3
+    '@testing-library/jest-dom': ^7.0.0
+    filesystem-routing: 0.2.1
+    jsdom: ^25.0.1
+    oxlint: ~1.79.0
+    sass: ^1.83.0
+    vitest: ^5.0.0
+  portfolio:
+    sass: ^1.102.0
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+# pnpm settings for this project (honored even for a single-package project —
+# this file marks the workspace root). The Solid packages release in lockstep
+# and templates track them closely; exclude the whole family from any
+# minimumReleaseAge policy so fresh Solid releases install immediately.
+#
+# NOTE: this exclusion is a temporary measure for the Solid 2.0 prerelease
+# cycle (frequent lockstep releases where new floors would otherwise fail
+# under an age policy). It should be removed once Solid 2.0 is stable —
+# at that point a caret range nearly always contains an age-satisfying
+# release and the policy can protect these packages like any other.
+minimumReleaseAgeExclude:
+  - solid-js
+  - '@solidjs/*'

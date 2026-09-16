@@ -1,35 +1,34 @@
-# Sedaia Portfolio
+# Sedaia Web Platform
 
-The static portfolio website for Sedaia Designs, built with SolidJS 2, TypeScript,
-Vite, and Sass.
+The Sedaia Web Platform is the monorepo for Sedaia Designs' public web presence. It brings together the business website, personal portfolio, documentation, blog, public API, shared frontend packages, and deployment configuration while keeping every application independently buildable and deployable.
 
-The site presents Sedaia Designs' background, software projects, and professional
-work in a responsive, component-based interface. It is a client-only application:
-there is no router, server runtime, or SolidStart layer. Source code lives in
-`src/`, static assets in `public/`, and the production output is generated in
-`dist/client`.
+## History
 
-## Development
+This project consolidates the original Sedaia Designs Ktor/SolidJS template and Sakura Sedaia portfolio into a single, purpose-built platform repository.
 
-```sh
-pnpm install
-pnpm dev
+## Structure
+
+```text
+.
+├── apps/
+│   ├── api/                 # Ktor API deployed to Google Cloud Run
+│   ├── business-site/       # sedaia-designs.org
+│   ├── portfolio/           # sakura-sedaia.com
+│   ├── docs/                # docs.sedaia-designs.org
+│   └── blog/                # blog.sedaia-designs.org
+├── packages/
+│   ├── api-client/          # Typed TypeScript API client and contracts
+│   ├── design-tokens/       # Shared visual design tokens
+│   └── shared-config/       # Shared frontend tooling configuration
+├── infrastructure/
+│   ├── cloud-run/           # API deployment configuration
+│   └── vercel/              # Frontend deployment configuration
+├── buildSrc/                # Gradle convention plugins
+├── gradle/                  # Gradle Wrapper and version catalog
+├── package.json             # Root scripts and workspace metadata
+├── pnpm-workspace.yaml      # pnpm workspace definition
+├── settings.gradle.kts      # Gradle project configuration
+└── PLAN.md                  # Architecture and rebuild plan
 ```
 
-Run `pnpm build` to create the production site in `dist/client`, or `pnpm serve`
-to preview the production build locally.
-
-### Available commands
-
-- `pnpm dev` — start the Vite development server.
-- `pnpm build` — type-check and build the deployable static site.
-- `pnpm serve` — preview the production build locally.
-
-The repository uses `pnpm-lock.yaml` to keep dependency installation reproducible.
-
-## Vercel deployment
-
-The repository includes `vercel.json` configured for Vercel's static deployment
-workflow. Import the repository into Vercel without changing the detected root
-directory; Vercel will install dependencies with the checked-in lockfile, run
-`pnpm build`, and publish `dist/client`.
+See [PLAN.md](PLAN.md) for the architecture, technology baseline, deployment model, and rebuild sequence.

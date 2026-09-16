@@ -1,0 +1,58 @@
+openapi: 3.0.3
+
+info:
+  title: Sedaia Designs API
+  version: 1.0.0
+
+servers:
+  - url: https://api.sedaia-designs.org
+
+paths:
+  /v1/portfolio:
+    get:
+      operationId: getPortfolio
+      summary: Get public portfolio information
+      tags:
+        - Portfolio
+      responses:
+        "200":
+          description: Public portfolio information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Portfolio"
+        "500":
+          description: Unexpected server error
+
+components:
+  schemas:
+    Portfolio:
+      type: object
+      required:
+        - owner
+        - headline
+        - projects
+      properties:
+        owner:
+          type: string
+          example: Sakura Sedaia
+        headline:
+          type: string
+          example: Designer and developer
+        projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/PortfolioProject"
+
+    PortfolioProject:
+      type: object
+      required:
+        - id
+        - title
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string

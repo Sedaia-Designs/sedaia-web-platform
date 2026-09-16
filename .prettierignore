@@ -1,0 +1,7 @@
+**/dist/
+**/build/
+**/node_modules/
+**/.agents/
+**/file-routes.d.ts
+**/gitlab-ci.yml
+pnpm-lock.yaml

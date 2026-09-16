@@ -1,0 +1,46 @@
+{
+  "name": "@sedaia-designs/business-site",
+  "version": "0.0.0",
+  "description": "Sedaia Designs business website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "lint:fast": "oxlint src",
+    "format": "prettier --ignore-path ../../.prettierignore --write .",
+    "format:check": "prettier --ignore-path ../../.prettierignore --check ."
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@solidjs/diagnostics": "catalog:business",
+    "@solidjs/testing-library": "catalog:business",
+    "@solidjs/vite-plugin": "catalog:",
+    "@testing-library/jest-dom": "catalog:business",
+    "@typescript-eslint/parser": "catalog:",
+    "autoprefixer": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-solid": "catalog:",
+    "filesystem-routing": "catalog:business",
+    "jsdom": "catalog:business",
+    "oxlint": "catalog:business",
+    "postcss": "catalog:",
+    "prettier": "catalog:",
+    "sass": "catalog:business",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:business"
+  },
+  "dependencies": {
+    "@solidjs/meta": "catalog:business",
+    "@solidjs/router": "catalog:business",
+    "@solidjs/web": "catalog:",
+    "solid-js": "catalog:"
+  }
+}

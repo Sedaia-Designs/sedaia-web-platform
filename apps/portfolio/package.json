@@ -1,0 +1,34 @@
+{
+  "name": "@sedaia-designs/portfolio",
+  "version": "1.0.0",
+  "description": "Sakura Sedaia personal portfolio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite",
+    "dev": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
+    "lint": "eslint src",
+    "format": "prettier --ignore-path ../../.prettierignore --write .",
+    "format:check": "prettier --ignore-path ../../.prettierignore --check ."
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@solidjs/vite-plugin": "catalog:",
+    "@typescript-eslint/parser": "catalog:",
+    "autoprefixer": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-solid": "catalog:",
+    "postcss": "catalog:",
+    "prettier": "catalog:",
+    "sass": "catalog:portfolio",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  },
+  "dependencies": {
+    "@solidjs/web": "catalog:",
+    "solid-js": "catalog:"
+  }
+}

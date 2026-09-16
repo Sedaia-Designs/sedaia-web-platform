@@ -1,30 +1,71 @@
-dist
-.wrangler
-.output
-.vercel
-.netlify
-.vinxi
-app.config.timestamp_*.js
-
-# Environment
-.env
-.env*.local
-
-# dependencies
-/node_modules
-
-# IDEs and editors
-/.idea
-.project
-.classpath
-*.launch
-.settings/
-.junie
-!/.junie/guidelines.md
-
-# Temp
-gitignore
-
-# System Files
+# Operating system files
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.local
+
+# JavaScript, pnpm, and frontend builds
+node_modules/
+.pnpm-store/
+dist/
+coverage/
+.vite/
+.vitest/
+.turbo/
+.cache/
+*.tsbuildinfo
+
+# Package-manager and tool logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Gradle, Kotlin, and JVM builds
+.gradle/
+**/build/
+out/
+*.class
+*.hprof
+hs_err_pid*
+replay_pid*
+local.properties
+
+# Vercel and framework-generated output
+.vercel/
+.output/
+.solid/
+.vinxi/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Eclipse
+.classpath
+.project
+.settings/
+.factorypath
+.externalToolBuilders/
+.metadata/
+bin/
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~

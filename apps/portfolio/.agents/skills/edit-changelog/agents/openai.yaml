@@ -1,0 +1,4 @@
+interface:
+  display_name: "Edit Sedaia Changelog"
+  short_description: "Write source-grounded release notes"
+  default_prompt: "Use $edit-changelog to prepare accurate release notes for this project."

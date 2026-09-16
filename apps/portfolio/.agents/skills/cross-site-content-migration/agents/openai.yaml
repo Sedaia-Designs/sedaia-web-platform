@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cross-Site Content Migration"
+  short_description: "Adapt public content across Sedaia sites"
+  default_prompt: "Use $cross-site-content-migration to adapt this material for another Sedaia site."
