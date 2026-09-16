@@ -37,6 +37,8 @@ api:
         - gradle/**/*
         - gradlew
         - .gitlab-ci.yml
+        - Dockerfile
+        - .dockerignore
 
 business-site:
   extends: .pnpm-job
