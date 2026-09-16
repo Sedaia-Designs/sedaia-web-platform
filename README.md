@@ -1,34 +1,117 @@
 # Sedaia Web Platform
 
-The Sedaia Web Platform is the monorepo for Sedaia Designs' public web presence. It brings together the business website, personal portfolio, documentation, blog, public API, shared frontend packages, and deployment configuration while keeping every application independently buildable and deployable.
+This repository contains the independently buildable services and websites for
+Sedaia Designs. Gradle owns the Kotlin API; pnpm owns the frontend workspace and
+the public API contract tooling.
 
-## History
+## Ownership
 
-This project consolidates the original Sedaia Designs Ktor/SolidJS template and Sakura Sedaia portfolio into a single, purpose-built platform repository.
+| Path                  | Responsibility                                                     | Build/deployment owner    |
+| --------------------- | ------------------------------------------------------------------ | ------------------------- |
+| `apps/api`            | Ktor API for `api.sedaia-designs.org`                              | Gradle / Google Cloud Run |
+| `apps/business`       | Business site for `sedaia-designs.org`                             | pnpm / Vercel             |
+| `apps/portfolio`      | Portfolio for `sakura-sedaia.com`                                  | pnpm / Vercel             |
+| `packages/api-client` | Public OpenAPI contract and, when generated, its TypeScript client | pnpm / CI                 |
 
-## Structure
+Changes should stay within one ownership boundary when possible. Shared Gradle
+files affect the API, while the root pnpm manifest, workspace file, and lockfile
+affect both frontend applications and contract tooling.
 
-```text
-.
-├── apps/
-│   ├── api/                 # Ktor API deployed to Google Cloud Run
-│   ├── business-site/       # sedaia-designs.org
-│   ├── portfolio/           # sakura-sedaia.com
-│   ├── docs/                # docs.sedaia-designs.org
-│   └── blog/                # blog.sedaia-designs.org
-├── packages/
-│   ├── api-client/          # Typed TypeScript API client and contracts
-│   ├── design-tokens/       # Shared visual design tokens
-│   └── shared-config/       # Shared frontend tooling configuration
-├── infrastructure/
-│   ├── cloud-run/           # API deployment configuration
-│   └── vercel/              # Frontend deployment configuration
-├── buildSrc/                # Gradle convention plugins
-├── gradle/                  # Gradle Wrapper and version catalog
-├── package.json             # Root scripts and workspace metadata
-├── pnpm-workspace.yaml      # pnpm workspace definition
-├── settings.gradle.kts      # Gradle project configuration
-└── PLAN.md                  # Architecture and rebuild plan
+## Required tools
+
+- Java 21 (Gradle itself is supplied by the wrapper)
+- Node.js 22.18.x
+- pnpm 10.22.x, normally enabled with Corepack
+
+From a fresh checkout:
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+./gradlew :apps:api:test
+pnpm build
 ```
 
-See [PLAN.md](PLAN.md) for the architecture, technology baseline, deployment model, and rebuild sequence.
+## Local development
+
+Run only the application you are working on:
+
+```sh
+# API: http://localhost:8080
+./gradlew :apps:api:run
+
+# Business site
+pnpm dev:business
+
+# Portfolio
+pnpm dev:portfolio
+```
+
+Useful scoped validation commands:
+
+```sh
+./gradlew :apps:api:check
+pnpm --filter @sedaia-designs/business-site lint
+pnpm --filter @sedaia-designs/business-site test
+pnpm --filter @sedaia-designs/business-site build
+pnpm --filter @sedaia-designs/portfolio lint
+pnpm --filter @sedaia-designs/portfolio build
+pnpm contract:lint
+```
+
+The root `pnpm build`, `pnpm lint`, `pnpm test`, and `pnpm format:check`
+commands run the corresponding script in every workspace package that provides
+one.
+
+## Environment variables
+
+The current applications require no secrets or checked-in local environment
+file. The API listens on port `8080` from
+`apps/api/src/main/resources/application.yaml`; Cloud Run configuration must
+override that setting with its injected `PORT` value before production
+deployment. Future browser-visible configuration must use Vite's `VITE_`
+prefix. Secrets must be stored in protected GitLab/Vercel variables or Google
+Secret Manager, never in the repository.
+
+## CI
+
+GitLab CI uses path-filtered jobs so unrelated applications do not build:
+
+- API changes run the Gradle check task.
+- Business-site changes run lint, tests, and a production build.
+- Portfolio changes run lint and a production build.
+- API-contract changes lint the OpenAPI document.
+
+Changes to shared workspace files intentionally trigger every affected pnpm
+job. See `.gitlab-ci.yml` for the exact path rules.
+
+## Deployment and rollback
+
+The two frontends are separate Vercel projects with their application directory
+as the project root. Their checked-in `vercel.json` files select the custom
+static build, run a frozen pnpm install followed by the app's build script, and
+publish `dist/client`:
+
+| Vercel project | Root directory   | Production domain    |
+| -------------- | ---------------- | -------------------- |
+| Business site  | `apps/business`  | `sedaia-designs.org` |
+| Portfolio      | `apps/portfolio` | `sakura-sedaia.com`  |
+
+Configure each Vercel project to use Node.js 22.x. The business configuration
+also rewrites unmatched client-side routes to `index.html`; existing static
+files continue to be served directly. Keep environment variables and domains
+scoped to their respective Vercel project.
+
+The API is deployed separately to Cloud Run only after its tests and container
+validation pass. CI validates artifacts but does not deploy them; deployment
+credentials and protected production jobs must remain isolated per
+application.
+
+For rollback, redeploy the last known-good Vercel deployment for the affected
+site or route Cloud Run traffic back to the prior revision. Do not roll back an
+unrelated application. During the portfolio migration window, the preserved
+source repository and its known-good Vercel configuration remain the final
+fallback.
+
+The architecture decisions and migration safeguards are recorded in
+[PLAN.md](PLAN.md) and [PLAN.html](PLAN.html).
