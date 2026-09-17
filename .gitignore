@@ -9,6 +9,7 @@ Desktop.ini
 !.env.example
 !.env.*.example
 *.local
+gha-creds-*.json
 
 # JavaScript, pnpm, and frontend builds
 node_modules/
