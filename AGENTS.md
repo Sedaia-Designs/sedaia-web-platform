@@ -51,3 +51,15 @@ Examples:
 - Before pushing, verify the current branch, configured remote, intended upstream, and commits that will be sent.
 - Use a normal push by default; never force-push unless the user explicitly requests it and the exact target has been verified.
 - Report the destination remote and branch after a successful push, or clearly report any failure without repeatedly retrying unsafe alternatives.
+
+## Record Keeping/Note-Taking
+
+All information and notes not needed for README, LICENSE, CONTRIBUTING, or other necessary GitHub Metadata must go into `/ObsidianNotes/`
+
+### Feature and Refactor Planning
+
+Avoid putting planning information directly into the Readme, always put planning information in into `cd ./ObsidianNotes/Plans` as Obsidian Markdown
+- Each Phase of the plan should be in a separate note
+- The plan itself will be nested in a subfolder named accordingly, example being `/ObsidianNotes/Plans/PlanToExecute1/note.md`.
+- Add a top level orchestration note which provides the recommended order of operation, description summary, key context, and other multi-phase steps.
+- The last step will always be final verification
