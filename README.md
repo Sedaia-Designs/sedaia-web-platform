@@ -88,6 +88,35 @@ GitLab CI uses path-filtered jobs so unrelated applications do not build:
 Changes to shared workspace files intentionally trigger every affected pnpm
 job. See `.gitlab-ci.yml` for the exact path rules.
 
+GitHub Actions is being introduced alongside GitLab CI. The initial port lives
+in `.github/workflows` and provides:
+
+- pull-request and `main` validation for the API, frontends, and OpenAPI
+  contract;
+- a manually dispatched production API deployment that accepts only `main`,
+  requires explicit confirmation, validates the container before pushing it,
+  and publishes a 30-day known-good release manifest; and
+- a manually dispatched rollback that retrieves a manifest from a successful
+  Deploy API workflow run and verifies its provenance before changing traffic.
+
+The GitHub `production` environment must use the strongest approval control
+available for the repository visibility and GitHub plan. GitHub documents that
+required reviewers for private repositories are not available on GitHub Team;
+that case requires the recorded procedural fallback or a plan upgrade. Define
+these environment or repository variables before exercising production:
+
+- `GCP_WORKLOAD_IDENTITY_PROVIDER`: the full Google Workload Identity provider
+  resource name configured for GitHub OIDC;
+- `GCP_SERVICE_ACCOUNT`: the dedicated GitHub Actions deployment service
+  account.
+
+Both production workflows share the `production-api` concurrency group and use
+the protected `production` environment. Do not disable GitLab CI/CD until the
+GitHub validation workflow passes on pull requests and `main`, OIDC
+authentication succeeds, and controlled deployment and rollback runs complete.
+The complete manual configuration and evidence checklist is in
+[the GitHub Actions migration plan](ObsidianVault/Plans/GitHubActionsMigration/Orchestration.md).
+
 ## Deployment and rollback
 
 The two frontends are separate Vercel projects with their application directory
@@ -110,9 +139,10 @@ The Portfolio production environment must define `VITE_API_BASE_URL` as
 future asynchronous client helper; the current static portfolio has no runtime
 dependency on the API.
 
-The API deployment job is a blocking manual action on the default branch. It
-serializes production releases, builds and pushes a commit-addressed container
-image, then deploys it to Cloud Run using GitLab workload identity federation.
+The current GitLab API deployment job is a blocking manual action on the
+default branch. It serializes production releases, builds and pushes a
+commit-addressed container image, then deploys it to Cloud Run using GitLab
+workload identity federation.
 After deployment, CI waits for `/health/ready`, verifies that
 `/v1/portfolio/` returns HTTP 200 with JSON and permits the production
 Portfolio origin through CORS, and prints the deployed revision and image
@@ -141,5 +171,9 @@ affected site. Do not roll back an unrelated application. During the portfolio
 migration window, the preserved source repository and its known-good Vercel
 configuration remain the final fallback.
 
-The architecture decisions and migration safeguards are recorded in
-[PLAN.md](PLAN.md).
+Architecture decisions originated in
+[the archived monorepo plan](ObsidianVault/Pre-Obsidian/PLAN.md). Remaining
+implementation is tracked in the
+[active monorepo buildout plan](ObsidianVault/Plans/MonorepoBuildout/Orchestration.md),
+and all active feature and refactor plans are indexed under
+[`ObsidianVault`](ObsidianVault/Plans/).
