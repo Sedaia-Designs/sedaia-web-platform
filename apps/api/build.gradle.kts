@@ -1,7 +1,20 @@
+import com.google.cloud.tools.gradle.appengine.appyaml.AppEngineAppYamlExtension
+
 plugins {
   alias(libs.plugins.kotlin.jvm)
   alias(ktorLibs.plugins.ktor)
   alias(libs.plugins.kotlin.serialization)
+  id("com.google.cloud.tools.appengine") version "2.8.0"
+}
+
+configure<AppEngineAppYamlExtension> {
+  stage {
+    setArtifact("./build/libs/${project.name}-all.jar")
+  }
+  deploy {
+    version = "GCLOUD_CONFIG"
+    projectId = "GCLOUD_CONFIG"
+  }
 }
 
 application {
