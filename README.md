@@ -8,7 +8,7 @@ the public API contract tooling.
 
 | Path                  | Responsibility                                                     | Build/deployment owner    |
 | --------------------- | ------------------------------------------------------------------ | ------------------------- |
-| `apps/api`            | Ktor API for `api.sedaia-designs.org`                              | Gradle / Google Cloud Run |
+| `apps/api`            | Ktor API for `api.sedaia-designs.org`                              | Gradle / App Engine Standard |
 | `apps/business`       | Business site for `sedaia-designs.org`                             | pnpm / Vercel             |
 | `apps/portfolio`      | Portfolio for `sakura-sedaia.com`                                  | pnpm / Vercel             |
 | `packages/api-client` | Public OpenAPI contract and, when generated, its TypeScript client | pnpm / CI                 |
@@ -67,11 +67,11 @@ one.
 
 The current applications require no secrets or checked-in local environment
 file. The API listens on port `8080` from
-`apps/api/src/main/resources/application.yaml`; Cloud Run configuration must
-override that setting with its injected `PORT` value before production
-deployment. Future browser-visible configuration must use Vite's `VITE_`
-prefix. Secrets must be stored in protected GitLab/Vercel variables or Google
-Secret Manager, never in the repository.
+`apps/api/src/main/resources/application.yaml`; App Engine Standard starts the
+packaged application through `apps/api/src/main/appengine/app.yaml`. Future
+browser-visible configuration must use Vite's `VITE_` prefix. Secrets must be
+stored in protected CI/Vercel configuration or Google Secret Manager, never in
+the repository.
 
 ## CI
 
@@ -94,8 +94,8 @@ in `.github/workflows` and provides:
 - pull-request and `main` validation for the API, frontends, and OpenAPI
   contract;
 - a manually dispatched production API deployment that accepts only `main`,
-  requires explicit confirmation, validates the container before pushing it,
-  and publishes a 30-day known-good release manifest; and
+  requires explicit confirmation, invokes the established Gradle App Engine
+  deployment task, and publishes a 30-day known-good release manifest; and
 - a manually dispatched rollback that retrieves a manifest from a successful
   Deploy API workflow run and verifies its provenance before changing traffic.
 
@@ -139,32 +139,27 @@ The Portfolio production environment must define `VITE_API_BASE_URL` as
 future asynchronous client helper; the current static portfolio has no runtime
 dependency on the API.
 
-The current GitLab API deployment job is a blocking manual action on the
-default branch. It serializes production releases, builds and pushes a
-commit-addressed container image, then deploys it to Cloud Run using GitLab
-workload identity federation.
-After deployment, CI waits for `/health/ready`, verifies that
-`/v1/portfolio/` returns HTTP 200 with JSON and permits the production
-Portfolio origin through CORS, and prints the deployed revision and image
-digest. Any failed operational or application smoke test fails the deployment
-job. Cloud Run credentials remain scoped to the API deployment job.
+The GitHub API deployment is a blocking manual action on `main`. It serializes
+production releases, authenticates with Workload Identity Federation, and runs
+`./gradlew :apps:api:appengineDeploy --no-configuration-cache`. Gradle owns
+assembly, App Engine staging, and deployment. Each workflow run assigns a
+deterministic immutable App Engine version, confirms service `default` in
+project `sedaia-web-platform-api-508804`, verifies final traffic, then checks
+`/health/ready` and `/v1/portfolio/` for HTTP 200, JSON, and the expected CORS
+origin.
 
-The production Cloud Run service is deployed in `us-central1` using
-`sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com` as
-its runtime identity. It accepts unauthenticated traffic from all ingress,
-listens on port `8080`, and uses one CPU, `512Mi` of memory, concurrency `40`,
-and a 30-second request timeout. It scales to zero when idle and is capped at
-three instances. The separate deployment identity remains configured through
-the `GCP_SERVICE_ACCOUNT` CI variable.
-
-Successful API deployments publish a 30-day machine-readable release manifest
-containing the immutable image digest, Cloud Run revision, verification
-evidence, and final traffic target. API rollback is a protected, manual,
-serialized GitLab job: it accepts only a known-good release manifest, prefers
-routing to its existing revision, falls back to the recorded digest without a
-rebuild, and reruns the same production verification. Monitoring and retention
-setup, alert response guidance, and the controlled drill procedure are in
+Successful deployments publish a 30-day machine-readable release manifest
+containing the source commit, immutable App Engine version, traffic allocation,
+and verification evidence. API rollback is protected, manual, and serialized:
+it accepts a retained known-good deployment run, verifies GitHub provenance and
+version existence, routes traffic to that existing version without rebuilding,
+and reruns production verification. Monitoring and retention setup, alert
+response guidance, and the controlled drill procedure are in
 [operations/ROLLBACK_AND_OBSERVABILITY.md](operations/ROLLBACK_AND_OBSERVABILITY.md).
+
+No approved `automatic_scaling.max_instances` value is recorded yet. Production
+owners must decide the capacity/cost limit before final sign-off; the repository
+does not choose an arbitrary value.
 
 For a frontend rollback, redeploy the last known-good Vercel deployment for the
 affected site. Do not roll back an unrelated application. During the portfolio

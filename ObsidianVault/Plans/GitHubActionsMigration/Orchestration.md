@@ -16,9 +16,9 @@ decision. It does not authorize removal of GitLab configuration.
 - CI/CD is responsible for validation, protected-environment guardrails,
   short-lived authentication, serialized execution, post-deployment checks,
   and retained evidence.
-- Existing candidate deployment and rollback workflows still describe Cloud
-  Run and must be aligned with the App Engine deployment contract before hosted
-  validation.
+- Repository deployment and rollback automation is aligned with App Engine.
+  Hosted environment protection, OIDC, deployment, and rollback behavior still
+  require controlled validation.
 - Production workflows use the `production` environment and the
   `production-api` concurrency group.
 - GitHub must use short-lived Google credentials through Workload Identity
@@ -30,10 +30,12 @@ decision. It does not authorize removal of GitLab configuration.
 ## Current status
 
 **In progress.** The build-owned App Engine deployment path is proven by the
-successful direct deployment on 2026-09-18. GitHub workflow alignment,
-Actions policy, environment protection, OIDC, ruleset, hosted CI, controlled
-deployment, rollback, stability, and cutover remain pending. Hosted state must
-not be inferred from workflow files or from the direct Gradle deployment.
+successful direct deployment on 2026-09-18. Repository workflow alignment is
+complete: CI is credential-free, deployment invokes the Gradle contract with a
+deterministic version, and rollback changes traffic only to a verified existing
+version. Actions policy, environment protection, OIDC, ruleset, hosted CI,
+controlled deployment and rollback drills, stability, and cutover remain
+pending. Hosted state must not be inferred from checked-in files.
 
 ## Recommended order
 
@@ -60,6 +62,6 @@ advancing. A phase with an unmet exit criterion remains open.
 | 00 | Complete | Historical plan decision table dated 2026-09-16 |
 | 01 | Complete with deferred team-access recheck | Historical plan Phase 1 |
 | 02–06 | Pending hosted validation | Record URLs and dated results in each phase note |
-| 07 | Pending workflow alignment and hosted validation | Invoke the established Gradle App Engine deployment task |
+| 07 | Repository implementation complete; hosted validation pending | Invoke the established Gradle App Engine deployment task |
 | 08–10 | Pending hosted validation | Record URLs and dated results in each phase note |
 | 11 | Pending | Complete only after every prior phase passes |

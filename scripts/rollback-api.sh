@@ -9,75 +9,69 @@ fi
 
 manifest="$1"
 : "${GCP_PROJECT_ID:?GCP_PROJECT_ID is required}"
-: "${GCP_REGION:?GCP_REGION is required}"
-: "${CLOUD_RUN_SERVICE:?CLOUD_RUN_SERVICE is required}"
-: "${CLOUD_RUN_SERVICE_ACCOUNT:?CLOUD_RUN_SERVICE_ACCOUNT is required}"
+: "${APP_ENGINE_SERVICE:?APP_ENGINE_SERVICE is required}"
 : "${ROLLBACK_REASON:?ROLLBACK_REASON is required}"
 : "${CI_PIPELINE_ID:?CI_PIPELINE_ID is required}"
 : "${CI_PIPELINE_URL:?CI_PIPELINE_URL is required}"
 
-jq -e '
-  .status == "known-good" and
-  .verification.readiness.passed and
-  .verification.portfolio_json.passed and
-  .verification.portfolio_cors.passed and
-  (.artifact.digest | startswith("sha256:"))
+jq -e --arg project "${GCP_PROJECT_ID}" --arg service "${APP_ENGINE_SERVICE}" '
+  .schema_version == 2 and .status == "known-good" and
+  .app_engine.project == $project and .app_engine.service == $service and
+  .verification.readiness.passed and .verification.portfolio_json.passed and .verification.portfolio_cors.passed and
+  .final_traffic_allocation == {(.app_engine.version): 1}
 ' "${manifest}" >/dev/null
 
-target_project="$(jq -r '.artifact.project' "${manifest}")"
-target_region="$(jq -r '.artifact.region' "${manifest}")"
-target_service="$(jq -r '.cloud_run.service' "${manifest}")"
-target_revision="$(jq -r '.cloud_run.revision' "${manifest}")"
-target_digest="$(jq -r '.artifact.digest' "${manifest}")"
-target_image="$(jq -r '.artifact.digest_reference' "${manifest}")"
+target_version="$(jq -r '.app_engine.version' "${manifest}")"
+service_url="$(jq -r '.app_engine.public_api_url // empty' "${manifest}")"
+[ -n "${service_url}" ] || service_url="$(jq -r '.app_engine.version_url' "${manifest}")"
 
-if [ "${target_project}" != "${GCP_PROJECT_ID}" ] || [ "${target_region}" != "${GCP_REGION}" ] || [ "${target_service}" != "${CLOUD_RUN_SERVICE}" ]; then
-  printf 'Manifest target does not match configured production target.\n' >&2
-  exit 1
-fi
+existing_version="$(gcloud app versions describe "${target_version}" \
+  --service="${APP_ENGINE_SERVICE}" --project="${GCP_PROJECT_ID}" \
+  --format='value(id)')"
+[ "${existing_version}" = "${target_version}" ]
 
-source_revision="$(gcloud run services describe "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.traffic[percent=100].revisionName)')"
+gcloud app services describe "${APP_ENGINE_SERVICE}" --project="${GCP_PROJECT_ID}" \
+  --format=json > rollback-traffic-before.json
+source_traffic="$(jq -c '.split.allocations' rollback-traffic-before.json)"
+source_version="$(jq -r '.split.allocations | to_entries | max_by(.value).key' rollback-traffic-before.json)"
 started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-printf 'Rollback target\n  project: %s\n  region: %s\n  service: %s\n  current revision: %s\n  target revision: %s\n  target digest: %s\n' \
-  "${GCP_PROJECT_ID}" "${GCP_REGION}" "${CLOUD_RUN_SERVICE}" "${source_revision}" "${target_revision}" "${target_digest}"
+printf 'App Engine rollback target\n  project: %s\n  service: %s\n  current traffic: %s\n  target version: %s\n' \
+  "${GCP_PROJECT_ID}" "${APP_ENGINE_SERVICE}" "${source_traffic}" "${target_version}"
 
-existing_digest="$(gcloud run revisions describe "${target_revision}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.imageDigest)' 2>/dev/null || true)"
-if [ "${existing_digest}" = "${target_digest}" ]; then
-  gcloud run services update-traffic "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --to-revisions="${target_revision}=100" --quiet
-  restored_revision="${target_revision}"
+gcloud app services set-traffic "${APP_ENGINE_SERVICE}" \
+  --project="${GCP_PROJECT_ID}" --splits="${target_version}=1" --migrate --quiet
+
+gcloud app services describe "${APP_ENGINE_SERVICE}" --project="${GCP_PROJECT_ID}" \
+  --format=json > rollback-traffic-after.json
+final_traffic="$(jq -c '.split.allocations' rollback-traffic-after.json)"
+
+verification_status="failed"
+if jq -e --arg version "${target_version}" '.split.allocations == {($version): 1}' rollback-traffic-after.json >/dev/null && \
+   scripts/verify-api-deployment.sh "${service_url}" rollback-verification.json; then
+  verification_status="passed"
 else
-  printf 'Recorded revision is unavailable; redeploying immutable image %s.\n' "${target_image}"
-  gcloud run deploy "${CLOUD_RUN_SERVICE}" \
-    --image="${target_image}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" \
-    --port=8080 --service-account="${CLOUD_RUN_SERVICE_ACCOUNT}" --ingress=all \
-    --allow-unauthenticated --min-instances=0 --max-instances=3 --memory=512Mi \
-    --cpu=1 --concurrency=40 --timeout=30s \
-    --update-labels="source-commit=$(jq -r '.source.commit_sha' "${manifest}"),rollback-pipeline=${CI_PIPELINE_ID}" --quiet
-  restored_revision="$(gcloud run services describe "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.latestReadyRevisionName)')"
-  gcloud run services update-traffic "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --to-revisions="${restored_revision}=100" --quiet
-fi
-
-service_url="$(gcloud run services describe "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.url)')"
-if ! scripts/verify-api-deployment.sh "${service_url}" rollback-verification.json; then
-  printf 'Rollback verification failed. Traffic was not switched forward automatically. Inspect the restored revision and either repair it or start another manual rollback with a different known-good manifest.\n' >&2
-  exit 1
-fi
-final_revision="$(gcloud run services describe "${CLOUD_RUN_SERVICE}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.traffic[percent=100].revisionName)')"
-final_digest="$(gcloud run revisions describe "${final_revision}" --project="${GCP_PROJECT_ID}" --region="${GCP_REGION}" --format='value(status.imageDigest)')"
-
-if [ "${final_digest}" != "${target_digest}" ]; then
-  printf 'Rollback verification passed, but final digest does not match the manifest. Inspect traffic manually; no automatic forward switch was attempted.\n' >&2
-  exit 1
+  jq --null-input --arg checked_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    '{checked_at: $checked_at, passed: false, error: "Post-rollback traffic or application verification failed"}' \
+    > rollback-verification.json
 fi
 
 jq --null-input --slurpfile verification rollback-verification.json \
   --arg started_at "${started_at}" --arg completed_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-  --arg pipeline_id "${CI_PIPELINE_ID}" --arg pipeline_url "${CI_PIPELINE_URL}" \
-  --arg reason "${ROLLBACK_REASON}" --arg source_revision "${source_revision}" \
-  --arg restored_revision "${restored_revision}" --arg final_revision "${final_revision}" \
-  --arg digest "${final_digest}" \
-  '{schema_version: 1, action: "rollback", started_at: $started_at, completed_at: $completed_at,
-    initiating_pipeline: {id: $pipeline_id, url: $pipeline_url}, reason: $reason,
-    source_revision: $source_revision, restored_revision: $restored_revision, restored_digest: $digest,
-    verification: $verification[0], final_traffic: {revision: $final_revision, percent: 100}}' > rollback-manifest.json
+  --arg run_id "${CI_PIPELINE_ID}" --arg run_url "${CI_PIPELINE_URL}" \
+  --arg reason "${ROLLBACK_REASON}" --arg project "${GCP_PROJECT_ID}" \
+  --arg service "${APP_ENGINE_SERVICE}" --arg source_version "${source_version}" \
+  --arg restored_version "${target_version}" --arg status "${verification_status}" \
+  --argjson source_traffic "${source_traffic}" --argjson final_traffic "${final_traffic}" \
+  '{schema_version: 2, action: "rollback", status: $status, started_at: $started_at, completed_at: $completed_at,
+    initiating_workflow: {run_id: $run_id, run_url: $run_url}, reason: $reason,
+    app_engine: {project: $project, service: $service, source_version: $source_version, restored_version: $restored_version},
+    source_traffic_allocation: $source_traffic, final_traffic_allocation: $final_traffic,
+    verification: $verification[0]}' > rollback-manifest.json
+
+if [ "${verification_status}" != "passed" ]; then
+  printf 'Rollback traffic changed, but post-rollback verification failed. Evidence was written; investigate immediately.\n' >&2
+  exit 1
+fi
+
+printf 'Rollback restored App Engine version %s and passed verification.\n' "${target_version}"

@@ -1,7 +1,12 @@
 # Phase 07 - Deployment Validation
 
-**Status: Pending.** Repository automation exists, but no controlled GitHub
-production deployment evidence is recorded.
+**Status: Repository implementation complete; controlled hosted deployment
+pending.** The workflow validates the API, requires `main` and exact manual
+confirmation, enters `production`, obtains short-lived OIDC credentials, sets a
+deterministic App Engine version, and invokes only the Gradle deployment task.
+It verifies the exact resource, traffic, application behavior, and retains a
+known-good manifest for 30 days. No controlled GitHub production deployment
+evidence is recorded.
 
 Related evidence recorded 2026-09-18: the established build contract,
 `./gradlew :apps:api:appengineDeploy --no-configuration-cache`, successfully
@@ -11,9 +16,7 @@ not need to reimplement deployment. This evidence does not satisfy the phase
 because it did not exercise GitHub Actions, OIDC, or the protected `production`
 environment.
 
-Update the workflow to install the required Java/Gradle and Google Cloud
-prerequisites, authenticate through OIDC, and invoke only the established
-Gradle deployment task. Run preflight negative tests, verify the
+Run preflight negative tests, verify the
 protected-environment gate and concurrency behavior, then carry out one
 controlled deployment from reviewed `main`.
 
@@ -28,3 +31,8 @@ Confirm and retain:
 
 Exit criterion: a reviewed deployment from `main` succeeds and leaves complete
 30-day evidence while invalid invocations fail safely.
+
+Unresolved before final production sign-off: choose and document an App Engine
+`automatic_scaling.max_instances` limit based on capacity and cost. No intended
+limit is established in the repository, so the implementation does not invent
+one.

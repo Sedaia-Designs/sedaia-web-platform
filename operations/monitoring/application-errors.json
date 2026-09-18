@@ -1,0 +1,36 @@
+{
+  "displayName": "sedaia-api: App Engine HTTP 5xx rate above 5 percent",
+  "combiner": "AND_WITH_MATCHING_RESOURCE",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {
+    "mimeType": "text/markdown",
+    "content": "Symptom: App Engine 5xx responses exceeded 5% for five minutes with meaningful traffic. Inspect Error Reporting and App Engine service/version logs for project sedaia-web-platform-api-508804. Roll back when errors correlate with the active version and cannot be mitigated promptly. Owner: __NOTIFICATION_OWNER__."
+  },
+  "conditions": [
+    {
+      "displayName": "App Engine 5xx ratio above 5 percent",
+      "conditionThreshold": {
+        "filter": "metric.type=\"appengine.googleapis.com/http/server/response_count\" AND resource.type=\"gae_app\" AND resource.label.module_id=\"default\" AND starts_with(metric.label.response_code, \"5\")",
+        "denominatorFilter": "metric.type=\"appengine.googleapis.com/http/server/response_count\" AND resource.type=\"gae_app\" AND resource.label.module_id=\"default\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 0.05,
+        "duration": "300s",
+        "aggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.module_id"]}],
+        "denominatorAggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.module_id"]}],
+        "trigger": {"count": 1}
+      }
+    },
+    {
+      "displayName": "At least 20 requests in five minutes",
+      "conditionThreshold": {
+        "filter": "metric.type=\"appengine.googleapis.com/http/server/response_count\" AND resource.type=\"gae_app\" AND resource.label.module_id=\"default\"",
+        "comparison": "COMPARISON_GT",
+        "thresholdValue": 19,
+        "duration": "0s",
+        "aggregations": [{"alignmentPeriod": "300s", "perSeriesAligner": "ALIGN_DELTA", "crossSeriesReducer": "REDUCE_SUM", "groupByFields": ["resource.label.module_id"]}],
+        "trigger": {"count": 1}
+      }
+    }
+  ]
+}

@@ -13,7 +13,9 @@ Perform the final cross-check after the cutover decision:
 5. Confirm the operational fallback and incident instructions match the final
    system of record.
 6. Review repository changes for credentials, unrelated edits, broken links,
-   and stale references to the former deployment source.
+   and stale references to the former deployment architecture.
+7. Confirm the production owner has explicitly decided and recorded the App
+   Engine automatic-scaling maximum rather than accepting an accidental default.
 
 Exit criterion: every check passes, evidence locations are recorded, and no
 required migration work remains open.

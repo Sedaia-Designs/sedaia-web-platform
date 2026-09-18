@@ -1,0 +1,131 @@
+name: Deploy API
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type deploy-production to confirm the production deployment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+env:
+  GCP_PROJECT_ID: sedaia-web-platform-api-508804
+  APP_ENGINE_SERVICE: default
+  APP_ENGINE_REGION_ID: uc
+  PUBLIC_API_URL: https://sedaia-web-platform-api-508804.uc.r.appspot.com
+
+jobs:
+  preflight:
+    name: Validate deployment request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require main and explicit confirmation
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          REQUESTED_REF: ${{ github.ref }}
+        run: |
+          test "$REQUESTED_REF" = "refs/heads/main"
+          test "$CONFIRMATION" = "deploy-production"
+
+  api-check:
+    name: Check API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Check API
+        run: ./gradlew :apps:api:check --no-daemon
+
+  deploy:
+    name: Deploy production API
+    needs: [preflight, api-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    concurrency:
+      group: production-api
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      CI_REPOSITORY: ${{ github.repository }}
+      CI_COMMIT_SHA: ${{ github.sha }}
+      CI_PIPELINE_ID: ${{ github.run_id }}
+      CI_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      CI_JOB_ID: deploy
+      CI_JOB_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+      - name: Set up Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v3
+      - name: Select immutable App Engine version
+        env:
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          APP_ENGINE_VERSION="gh-${RUN_ID}-${RUN_ATTEMPT}-$(printf '%s' "$COMMIT_SHA" | cut -c1-7)"
+          case "$APP_ENGINE_VERSION" in
+            *[!a-z0-9-]*|'') exit 1 ;;
+          esac
+          test "${#APP_ENGINE_VERSION}" -le 63
+          echo "APP_ENGINE_VERSION=$APP_ENGINE_VERSION" >> "$GITHUB_ENV"
+      - name: Deploy with the Gradle App Engine task
+        run: ./gradlew :apps:api:appengineDeploy --no-configuration-cache
+      - name: Verify deployed App Engine resource and traffic
+        run: |
+          mkdir -p release-manifests
+          gcloud app versions describe "$APP_ENGINE_VERSION" \
+            --service="$APP_ENGINE_SERVICE" --project="$GCP_PROJECT_ID" \
+            --format=json > release-manifests/version.json
+          jq -e --arg project "$GCP_PROJECT_ID" --arg service "$APP_ENGINE_SERVICE" --arg version "$APP_ENGINE_VERSION" '
+            .id == $version and .service == $service and
+            (.name | startswith("apps/" + $project + "/services/" + $service + "/versions/" + $version)) and
+            .servingStatus == "SERVING"
+          ' release-manifests/version.json >/dev/null
+          gcloud app services describe "$APP_ENGINE_SERVICE" \
+            --project="$GCP_PROJECT_ID" --format=json > release-manifests/service.json
+          jq -e --arg version "$APP_ENGINE_VERSION" '.split.allocations == {($version): 1}' \
+            release-manifests/service.json >/dev/null
+          jq -c '.split.allocations' release-manifests/service.json > release-manifests/traffic.json
+          APP_ENGINE_VERSION_URL="https://${APP_ENGINE_VERSION}-dot-${GCP_PROJECT_ID}.${APP_ENGINE_REGION_ID}.r.appspot.com"
+          echo "APP_ENGINE_VERSION_URL=$APP_ENGINE_VERSION_URL" >> "$GITHUB_ENV"
+          echo "FINAL_TRAFFIC_FILE=release-manifests/traffic.json" >> "$GITHUB_ENV"
+      - name: Verify production deployment
+        run: scripts/verify-api-deployment.sh "$PUBLIC_API_URL" release-manifests/verification.json
+      - name: Create release manifest
+        run: |
+          scripts/create-release-manifest.sh release-manifests/verification.json release-manifests/release.json
+          jq '{status, deployed_at, commit: .source.commit_sha, app_engine: .app_engine, traffic: .final_traffic_allocation}' release-manifests/release.json
+      - name: Upload deployment evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-release-manifest
+          path: release-manifests/
+          if-no-files-found: error
+          retention-days: 30
