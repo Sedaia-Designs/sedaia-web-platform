@@ -1,0 +1,62 @@
+substitutions:
+  _REGION: us-central1
+  _ARTIFACT_REPOSITORY: sedaia-repo
+  _SERVICE: sedaia-api
+  _RUNTIME_SERVICE_ACCOUNT: sedaia-api-runtime@${PROJECT_ID}.iam.gserviceaccount.com
+
+steps:
+  - id: test-api
+    name: gradle:8-jdk21
+    entrypoint: ./gradlew
+    args:
+      - :apps:api:check
+      - --no-daemon
+
+  - id: build-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - build
+      - --tag
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
+      - .
+
+  - id: push-image
+    name: gcr.io/cloud-builders/docker
+    args:
+      - push
+      - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
+
+  - id: deploy-cloud-run
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - ${_SERVICE}
+      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
+      - --project=${PROJECT_ID}
+      - --region=${_REGION}
+      - --platform=managed
+      - --service-account=${_RUNTIME_SERVICE_ACCOUNT}
+      - --allow-unauthenticated
+      - --ingress=all
+      - --port=8080
+      - --min-instances=0
+      - --max-instances=3
+      - --memory=512Mi
+      - --cpu=1
+      - --concurrency=40
+      - --timeout=30s
+      - --startup-probe=httpGet.path=/health/ready,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=2,periodSeconds=5,failureThreshold=12
+      - --liveness-probe=httpGet.path=/health/live,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=2,periodSeconds=30,failureThreshold=3
+      - --labels=managed-by=cloud-build,build-id=${BUILD_ID}
+      - --quiet
+
+images:
+  - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
+
+options:
+  dynamicSubstitutions: true
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: 1200s

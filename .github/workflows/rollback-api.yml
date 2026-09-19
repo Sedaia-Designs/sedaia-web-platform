@@ -21,7 +21,8 @@ permissions:
 
 env:
   GCP_PROJECT_ID: sedaia-web-platform-api-508804
-  APP_ENGINE_SERVICE: default
+  CLOUD_RUN_REGION: us-central1
+  CLOUD_RUN_SERVICE: sedaia-api
 
 jobs:
   rollback:
@@ -64,9 +65,9 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
-      - name: Verify release provenance and version
+      - name: Verify release provenance, revision, and digest
         run: scripts/verify-github-release-manifest-provenance.sh "$RELEASE_RUN_ID" supplied-release/release.json verified-release.json
-      - name: Roll back App Engine traffic and verify
+      - name: Route traffic to the known-good Cloud Run revision and verify
         run: scripts/rollback-api.sh verified-release.json
       - name: Upload rollback evidence
         if: always()
@@ -76,8 +77,8 @@ jobs:
           path: |
             rollback-manifest.json
             rollback-verification.json
-            rollback-traffic-before.json
-            rollback-traffic-after.json
+            rollback-service-before.json
+            rollback-service-after.json
             verified-release.json
           if-no-files-found: warn
           retention-days: 30

@@ -13,9 +13,10 @@ permissions:
 
 env:
   GCP_PROJECT_ID: sedaia-web-platform-api-508804
-  APP_ENGINE_SERVICE: default
-  APP_ENGINE_REGION_ID: uc
-  PUBLIC_API_URL: https://sedaia-web-platform-api-508804.uc.r.appspot.com
+  CLOUD_RUN_REGION: us-central1
+  CLOUD_RUN_SERVICE: sedaia-api
+  ARTIFACT_REGISTRY_REPOSITORY: sedaia-repo
+  CLOUD_BUILD_SERVICE_ACCOUNT: projects/sedaia-web-platform-api-508804/serviceAccounts/sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com
 
 jobs:
   preflight:
@@ -68,13 +69,6 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
-      - name: Set up Java
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: "21"
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v6
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -83,45 +77,55 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
-      - name: Select immutable App Engine version
-        env:
-          RUN_ID: ${{ github.run_id }}
-          RUN_ATTEMPT: ${{ github.run_attempt }}
-          COMMIT_SHA: ${{ github.sha }}
+      - name: Submit the production build to Cloud Build
         run: |
-          APP_ENGINE_VERSION="gh-${RUN_ID}-${RUN_ATTEMPT}-$(printf '%s' "$COMMIT_SHA" | cut -c1-7)"
-          case "$APP_ENGINE_VERSION" in
-            *[!a-z0-9-]*|'') exit 1 ;;
-          esac
-          test "${#APP_ENGINE_VERSION}" -le 63
-          echo "APP_ENGINE_VERSION=$APP_ENGINE_VERSION" >> "$GITHUB_ENV"
-      - name: Deploy with the Gradle App Engine task
-        run: ./gradlew :apps:api:appengineDeploy --no-configuration-cache
-      - name: Verify deployed App Engine resource and traffic
+          CLOUD_BUILD_ID="$(gcloud builds submit . \
+            --config=cloudbuild.yaml \
+            --project="$GCP_PROJECT_ID" \
+            --region="$CLOUD_RUN_REGION" \
+            --service-account="$CLOUD_BUILD_SERVICE_ACCOUNT" \
+            --format='value(id)')"
+          test -n "$CLOUD_BUILD_ID"
+          IMAGE_REPOSITORY="${CLOUD_RUN_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/${CLOUD_RUN_SERVICE}"
+          IMAGE_DIGEST="$(gcloud artifacts docker images describe "${IMAGE_REPOSITORY}:${CLOUD_BUILD_ID}" --format='value(image_summary.digest)')"
+          [[ "$IMAGE_DIGEST" =~ ^sha256:[a-f0-9]{64}$ ]]
+          echo "CLOUD_BUILD_ID=$CLOUD_BUILD_ID" >> "$GITHUB_ENV"
+          echo "IMAGE_REPOSITORY=$IMAGE_REPOSITORY" >> "$GITHUB_ENV"
+          echo "IMAGE_DIGEST=$IMAGE_DIGEST" >> "$GITHUB_ENV"
+          echo "IMAGE_URI=${IMAGE_REPOSITORY}@${IMAGE_DIGEST}" >> "$GITHUB_ENV"
+      - name: Verify Cloud Run revision, digest, and traffic
         run: |
           mkdir -p release-manifests
-          gcloud app versions describe "$APP_ENGINE_VERSION" \
-            --service="$APP_ENGINE_SERVICE" --project="$GCP_PROJECT_ID" \
-            --format=json > release-manifests/version.json
-          jq -e --arg project "$GCP_PROJECT_ID" --arg service "$APP_ENGINE_SERVICE" --arg version "$APP_ENGINE_VERSION" '
-            .id == $version and .service == $service and
-            (.name | startswith("apps/" + $project + "/services/" + $service + "/versions/" + $version)) and
-            .servingStatus == "SERVING"
-          ' release-manifests/version.json >/dev/null
-          gcloud app services describe "$APP_ENGINE_SERVICE" \
-            --project="$GCP_PROJECT_ID" --format=json > release-manifests/service.json
-          jq -e --arg version "$APP_ENGINE_VERSION" '.split.allocations == {($version): 1}' \
-            release-manifests/service.json >/dev/null
-          jq -c '.split.allocations' release-manifests/service.json > release-manifests/traffic.json
-          APP_ENGINE_VERSION_URL="https://${APP_ENGINE_VERSION}-dot-${GCP_PROJECT_ID}.${APP_ENGINE_REGION_ID}.r.appspot.com"
-          echo "APP_ENGINE_VERSION_URL=$APP_ENGINE_VERSION_URL" >> "$GITHUB_ENV"
+          gcloud run services describe "$CLOUD_RUN_SERVICE" \
+            --project="$GCP_PROJECT_ID" --region="$CLOUD_RUN_REGION" \
+            --format=json > release-manifests/service.json
+          CLOUD_RUN_REVISION="$(jq -r '.status.latestReadyRevisionName' release-manifests/service.json)"
+          CLOUD_RUN_SERVICE_URL="$(jq -r '.status.url' release-manifests/service.json)"
+          test -n "$CLOUD_RUN_REVISION"
+          test -n "$CLOUD_RUN_SERVICE_URL"
+          gcloud run revisions describe "$CLOUD_RUN_REVISION" \
+            --project="$GCP_PROJECT_ID" --region="$CLOUD_RUN_REGION" \
+            --format=json > release-manifests/revision.json
+          jq -e --arg revision "$CLOUD_RUN_REVISION" --arg digest "$IMAGE_DIGEST" --arg build_id "$CLOUD_BUILD_ID" '
+            .metadata.name == $revision and .metadata.labels["build-id"] == $build_id and
+            .status.imageDigest == $digest and
+            any(.status.conditions[]; .type == "Ready" and .status == "True")
+          ' release-manifests/revision.json >/dev/null
+          jq -e --arg revision "$CLOUD_RUN_REVISION" '
+            .status.latestCreatedRevisionName == $revision and
+            .status.latestReadyRevisionName == $revision and
+            ([.status.traffic[] | select(.revisionName == $revision) | .percent] | add) == 100
+          ' release-manifests/service.json >/dev/null
+          jq -c '.status.traffic' release-manifests/service.json > release-manifests/traffic.json
+          echo "CLOUD_RUN_REVISION=$CLOUD_RUN_REVISION" >> "$GITHUB_ENV"
+          echo "CLOUD_RUN_SERVICE_URL=$CLOUD_RUN_SERVICE_URL" >> "$GITHUB_ENV"
           echo "FINAL_TRAFFIC_FILE=release-manifests/traffic.json" >> "$GITHUB_ENV"
       - name: Verify production deployment
-        run: scripts/verify-api-deployment.sh "$PUBLIC_API_URL" release-manifests/verification.json
+        run: scripts/verify-api-deployment.sh "$CLOUD_RUN_SERVICE_URL" release-manifests/verification.json
       - name: Create release manifest
         run: |
           scripts/create-release-manifest.sh release-manifests/verification.json release-manifests/release.json
-          jq '{status, deployed_at, commit: .source.commit_sha, app_engine: .app_engine, traffic: .final_traffic_allocation}' release-manifests/release.json
+          jq '{status, deployed_at, commit: .source.commit_sha, cloud_build: .cloud_build, cloud_run: .cloud_run, image: .image, traffic: .final_traffic}' release-manifests/release.json
       - name: Upload deployment evidence
         uses: actions/upload-artifact@v7
         with:

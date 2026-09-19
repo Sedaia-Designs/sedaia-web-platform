@@ -8,7 +8,7 @@ the public API contract tooling.
 
 | Path                  | Responsibility                                                     | Build/deployment owner    |
 | --------------------- | ------------------------------------------------------------------ | ------------------------- |
-| `apps/api`            | Ktor API for `api.sedaia-designs.org`                              | Gradle / App Engine Standard |
+| `apps/api`            | Ktor API for `api.sedaia-designs.org`                              | Cloud Build / Cloud Run   |
 | `apps/business`       | Business site for `sedaia-designs.org`                             | pnpm / Vercel             |
 | `apps/portfolio`      | Portfolio for `sakura-sedaia.com`                                  | pnpm / Vercel             |
 | `packages/api-client` | Public OpenAPI contract and, when generated, its TypeScript client | pnpm / CI                 |
@@ -66,36 +66,20 @@ one.
 ## Environment variables
 
 The current applications require no secrets or checked-in local environment
-file. The API listens on port `8080` from
-`apps/api/src/main/resources/application.yaml`; App Engine Standard starts the
-packaged application through `apps/api/src/main/appengine/app.yaml`. Future
-browser-visible configuration must use Vite's `VITE_` prefix. Secrets must be
-stored in protected CI/Vercel configuration or Google Secret Manager, never in
-the repository.
+file. The API reads Cloud Run's `PORT` variable and falls back to `8080` for
+local development. Future browser-visible configuration must use Vite's
+`VITE_` prefix. Secrets must be stored in protected CI/Vercel configuration or
+Google Secret Manager, never in the repository.
 
 ## CI
 
-GitLab CI uses path-filtered jobs so unrelated applications do not build:
-
-- API changes run the Gradle check task.
-- Business-site changes run lint, tests, and a production build.
-- Portfolio changes run lint and a production build.
-- API-contract changes lint the OpenAPI document.
-- API and container-build changes on the default branch expose a manual,
-  serialized production deployment after validation succeeds. Merge-request
-  pipelines remain build-only.
-
-Changes to shared workspace files intentionally trigger every affected pnpm
-job. See `.gitlab-ci.yml` for the exact path rules.
-
-GitHub Actions is being introduced alongside GitLab CI. The initial port lives
-in `.github/workflows` and provides:
+GitHub Actions workflows in `.github/workflows` provide:
 
 - pull-request and `main` validation for the API, frontends, and OpenAPI
   contract;
 - a manually dispatched production API deployment that accepts only `main`,
-  requires explicit confirmation, invokes the established Gradle App Engine
-  deployment task, and publishes a 30-day known-good release manifest; and
+  requires explicit confirmation, deploys an immutable image digest to Cloud
+  Run, and publishes a 30-day known-good release manifest; and
 - a manually dispatched rollback that retrieves a manifest from a successful
   Deploy API workflow run and verifies its provenance before changing traffic.
 
@@ -111,13 +95,64 @@ these environment or repository variables before exercising production:
   account.
 
 Both production workflows share the `production-api` concurrency group and use
-the protected `production` environment. Do not disable GitLab CI/CD until the
-GitHub validation workflow passes on pull requests and `main`, OIDC
-authentication succeeds, and controlled deployment and rollback runs complete.
+the protected `production` environment. Cloud Build is the sole production
+deployment owner: the protected GitHub workflow submits `cloudbuild.yaml`, and
+the eventual regional `main` trigger runs that same configuration. GitHub does
+not maintain a separate container build or `gcloud run deploy` implementation.
+Retire any remaining legacy CI/CD deployment integration after GitHub
+validation passes on pull requests and `main`, OIDC authentication succeeds,
+and controlled Cloud Build deployment and rollback runs complete.
 The complete manual configuration and evidence checklist is in
 [the GitHub Actions migration plan](ObsidianVault/Plans/GitHubActionsMigration/Orchestration.md).
 
 ## Deployment and rollback
+
+### Cloud Run API
+
+The root `cloudbuild.yaml` is the canonical container build configuration. It
+tests the API, builds the root `Dockerfile`, pushes a unique build-ID tag to
+Artifact Registry, and deploys it to Cloud Run with explicit runtime, scaling,
+resource, and health-check settings. Cloud Run resolves that image to a digest
+when it creates the revision; release and rollback evidence identifies both.
+
+The defaults target project `sedaia-web-platform-api-508804`, region
+`us-central1`, Artifact Registry repository `sedaia-repo`, Cloud Run service
+`sedaia-api`, and runtime service account
+`sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com`.
+The repository and runtime service account must exist before the first build.
+The Cloud Build service account needs permission to write to the Artifact
+Registry repository, deploy and inspect the Cloud Run service, and act as the
+runtime service account.
+
+Submit the same build configuration used by a trigger with:
+
+```sh
+gcloud builds submit . \
+  --config=cloudbuild.yaml \
+  --project=sedaia-web-platform-api-508804 \
+  --region=us-central1
+```
+
+For a different target, override user substitutions rather than editing the
+file:
+
+```sh
+gcloud builds submit . \
+  --config=cloudbuild.yaml \
+  --project=PROJECT_ID \
+  --region=REGION \
+  --substitutions=_REGION=REGION,_ARTIFACT_REPOSITORY=REPOSITORY,_SERVICE=SERVICE,_RUNTIME_SERVICE_ACCOUNT=SERVICE_ACCOUNT
+```
+
+After the build succeeds, retrieve the generated service URL and verify it:
+
+```sh
+SERVICE_URL="$(gcloud run services describe sedaia-api \
+  --project=sedaia-web-platform-api-508804 \
+  --region=us-central1 \
+  --format='value(status.url)')"
+scripts/verify-api-deployment.sh "$SERVICE_URL"
+```
 
 The two frontends are separate Vercel projects with their application directory
 as the project root. Their checked-in `vercel.json` files select the custom
@@ -140,26 +175,28 @@ future asynchronous client helper; the current static portfolio has no runtime
 dependency on the API.
 
 The GitHub API deployment is a blocking manual action on `main`. It serializes
-production releases, authenticates with Workload Identity Federation, and runs
-`./gradlew :apps:api:appengineDeploy --no-configuration-cache`. Gradle owns
-assembly, App Engine staging, and deployment. Each workflow run assigns a
-deterministic immutable App Engine version, confirms service `default` in
-project `sedaia-web-platform-api-508804`, verifies final traffic, then checks
+production releases, authenticates with Workload Identity Federation, and
+submits the repository root to Cloud Build using `cloudbuild.yaml` and the
+dedicated build identity. Cloud Build tests the API, builds and pushes the
+`BUILD_ID`-tagged image, and deploys the Cloud Run revision. GitHub then resolves
+the image to its `sha256` digest and confirms the new revision is ready, is
+labelled with that build ID, and serves 100% of traffic before checking
 `/health/ready` and `/v1/portfolio/` for HTTP 200, JSON, and the expected CORS
 origin.
 
 Successful deployments publish a 30-day machine-readable release manifest
-containing the source commit, immutable App Engine version, traffic allocation,
-and verification evidence. API rollback is protected, manual, and serialized:
-it accepts a retained known-good deployment run, verifies GitHub provenance and
-version existence, routes traffic to that existing version without rebuilding,
-and reruns production verification. Monitoring and retention setup, alert
+containing the source commit, Cloud Run revision, immutable image digest,
+traffic state, and verification evidence. API rollback is protected, manual,
+and serialized: it accepts a retained known-good deployment run, verifies
+GitHub provenance and confirms the revision still uses the recorded digest,
+routes traffic to that existing revision without rebuilding, and reruns
+production verification. Monitoring and retention setup, alert
 response guidance, and the controlled drill procedure are in
 [operations/ROLLBACK_AND_OBSERVABILITY.md](operations/ROLLBACK_AND_OBSERVABILITY.md).
 
-No approved `automatic_scaling.max_instances` value is recorded yet. Production
-owners must decide the capacity/cost limit before final sign-off; the repository
-does not choose an arbitrary value.
+Keep every revision and Artifact Registry digest referenced by a retained
+manifest for at least 30 days; cleanup policies must not remove rollback images
+early. The current Cloud Run configuration caps the API at three instances.
 
 For a frontend rollback, redeploy the last known-good Vercel deployment for the
 affected site. Do not roll back an unrelated application. During the portfolio

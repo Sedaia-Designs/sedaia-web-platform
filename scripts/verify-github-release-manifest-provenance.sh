@@ -10,7 +10,8 @@ fi
 : "${GH_TOKEN:?GH_TOKEN is required}"
 : "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY is required}"
 : "${GCP_PROJECT_ID:?GCP_PROJECT_ID is required}"
-: "${APP_ENGINE_SERVICE:?APP_ENGINE_SERVICE is required}"
+: "${CLOUD_RUN_REGION:?CLOUD_RUN_REGION is required}"
+: "${CLOUD_RUN_SERVICE:?CLOUD_RUN_SERVICE is required}"
 
 release_run_id="$1"
 supplied_manifest="$2"
@@ -46,24 +47,35 @@ jq -e \
   --arg run_id "${release_run_id}" \
   --arg commit "${run_commit}" \
   --arg project "${GCP_PROJECT_ID}" \
-  --arg service "${APP_ENGINE_SERVICE}" '
-  .schema_version == 2 and .status == "known-good" and
+  --arg region "${CLOUD_RUN_REGION}" \
+  --arg service "${CLOUD_RUN_SERVICE}" '
+  .cloud_run.revision as $revision |
+  .schema_version == 3 and .status == "known-good" and
   .github.repository == $repository and .github.workflow_run_id == $run_id and
   .source.commit_sha == $commit and
-  .app_engine.project == $project and .app_engine.service == $service and
-  (.app_engine.version | type == "string" and test("^[a-z0-9][a-z0-9-]{0,62}$")) and
-  (.app_engine.version_url | type == "string" and startswith("https://")) and
+  (.cloud_build.build_id | type == "string" and length > 0) and
+  .cloud_run.project == $project and .cloud_run.region == $region and .cloud_run.service == $service and
+  (.cloud_run.revision | type == "string" and test("^[a-z0-9][a-z0-9-]{0,62}$")) and
+  (.cloud_run.service_url | type == "string" and startswith("https://")) and
+  (.image.repository | type == "string" and startswith($region + "-docker.pkg.dev/" + $project + "/")) and
+  (.image.digest | type == "string" and test("^sha256:[a-f0-9]{64}$")) and
+  .image.uri == (.image.repository + "@" + .image.digest) and
   .verification.readiness.passed == true and .verification.readiness.http_status == 200 and
   .verification.portfolio_json.passed == true and .verification.portfolio_json.http_status == 200 and
   .verification.portfolio_cors.passed == true and
-  .final_traffic_allocation == {(.app_engine.version): 1}
+  ([.final_traffic[] | select(.revisionName == $revision) | .percent] | add) == 100
 ' "${supplied_manifest}" >/dev/null
 
-target_version="$(jq -r '.app_engine.version' "${supplied_manifest}")"
-existing_version="$(gcloud app versions describe "${target_version}" \
-  --service="${APP_ENGINE_SERVICE}" --project="${GCP_PROJECT_ID}" \
-  --format='value(id)')"
-[ "${existing_version}" = "${target_version}" ]
+target_revision="$(jq -r '.cloud_run.revision' "${supplied_manifest}")"
+target_digest="$(jq -r '.image.digest' "${supplied_manifest}")"
+target_build_id="$(jq -r '.cloud_build.build_id' "${supplied_manifest}")"
+revision_json="$(gcloud run revisions describe "${target_revision}" \
+  --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format=json)"
+existing_revision="$(printf '%s' "${revision_json}" | jq -r '.metadata.name')"
+existing_digest="$(printf '%s' "${revision_json}" | jq -r '.status.imageDigest')"
+[ "${existing_revision}" = "${target_revision}" ]
+[ "${existing_digest}" = "${target_digest}" ]
+[ "$(printf '%s' "${revision_json}" | jq -r '.metadata.labels["build-id"]')" = "${target_build_id}" ]
 
 cp "${supplied_manifest}" "${verified_output}"
-printf 'Verified App Engine release manifest provenance against GitHub Actions run %s.\n' "${release_run_id}"
+printf 'Verified Cloud Run release manifest provenance, revision, and image digest against GitHub Actions run %s.\n' "${release_run_id}"

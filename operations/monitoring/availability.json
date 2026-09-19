@@ -1,9 +1,9 @@
 {
-  "displayName": "sedaia-api: App Engine readiness unavailable",
+  "displayName": "sedaia-api: Cloud Run readiness unavailable",
   "combiner": "OR",
   "enabled": true,
   "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
-  "documentation": {"mimeType": "text/markdown", "content": "Symptom: /health/ready failed twice. Inspect App Engine service/version logs and Error Reporting for project sedaia-web-platform-api-508804. First checks: inspect the serving version, application errors, and dependencies. Roll back when the active version caused the failures and recovery is not immediate. Owner: __NOTIFICATION_OWNER__."},
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: /health/ready failed twice. Inspect Cloud Run service and revision logs for sedaia-api in us-central1. First checks: inspect the serving revision, its image digest, application errors, and dependencies. Roll back when the active revision caused the failures and recovery is not immediate. Owner: __NOTIFICATION_OWNER__."},
   "conditions": [{
     "displayName": "Two consecutive readiness failures",
     "conditionThreshold": {
