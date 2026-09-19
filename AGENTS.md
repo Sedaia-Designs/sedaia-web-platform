@@ -51,15 +51,18 @@ Examples:
 - Before pushing, verify the current branch, configured remote, intended upstream, and commits that will be sent.
 - Use a normal push by default; never force-push unless the user explicitly requests it and the exact target has been verified.
 - Report the destination remote and branch after a successful push, or clearly report any failure without repeatedly retrying unsafe alternatives.
+- When writing in the Obsidian Vault, do not separate paragraphs, list items, etc onto multiple lines. Obsidian has Word Wrapping, and Newlines break Checkboxes rendering
 
 ## Record Keeping/Note-Taking
 
-All information and notes not needed for README, LICENSE, CONTRIBUTING, or other necessary GitHub Metadata must go into `/ObsidianNotes/`
+All information and notes not needed for README, LICENSE, CONTRIBUTING, or other necessary GitHub Metadata must go into `/ObsidianVault/`
 
 ### Feature and Refactor Planning
 
-Avoid putting planning information directly into the Readme, always put planning information in into `cd ./ObsidianNotes/Plans` as Obsidian Markdown
+Avoid putting planning information directly into the Readme, always put planning information in into `cd ./ObsidianVault/Plans` as Obsidian Markdown
 - Each Phase of the plan should be in a separate note
-- The plan itself will be nested in a subfolder named accordingly, example being `/ObsidianNotes/Plans/PlanToExecute1/note.md`.
+- The plan itself will be nested in a subfolder named accordingly, example being `/ObsidianVault/Plans/PlanToExecute1/note.md`.
 - Add a top level orchestration note which provides the recommended order of operation, description summary, key context, and other multi-phase steps.
 - The last step will always be final verification
+- Plans are intended for a Human SWE to follow and operate with, and must be written clearly.
+- When Clarification is asked regarding a Plan, Phase, or Step, always apply the clarifications to the document itself.
