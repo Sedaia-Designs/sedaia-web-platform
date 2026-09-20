@@ -55,6 +55,12 @@ local.properties
 .vscode/
 *.code-workspace
 
+# Obsidian volatile vault state
+ObsidianVault/.obsidian/workspace.json
+ObsidianVault/.obsidian/workspace-mobile.json
+ObsidianVault/.obsidian/cache/
+ObsidianVault/.trash/
+
 # Eclipse
 .classpath
 .project
