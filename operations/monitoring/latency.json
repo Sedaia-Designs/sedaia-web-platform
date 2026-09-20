@@ -1,0 +1,16 @@
+{
+  "displayName": "sedaia-api: Cloud Run p95 latency above two seconds",
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: Cloud Run p95 request latency exceeded two seconds for ten minutes. Inspect service and revision metrics and logs for sedaia-api in us-central1. First checks: inspect revision latency, instance scaling, and downstream calls. Roll back when the active revision introduced sustained latency. Owner: __NOTIFICATION_OWNER__."},
+  "conditions": [{
+    "displayName": "p95 latency above two seconds for ten minutes",
+    "conditionThreshold": {
+      "filter": "metric.type=\"run.googleapis.com/request_latencies\" AND resource.type=\"cloud_run_revision\" AND resource.label.service_name=\"sedaia-api\" AND resource.label.location=\"us-central1\"",
+      "comparison": "COMPARISON_GT", "thresholdValue": 2000, "duration": "600s",
+      "aggregations": [{"alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_PERCENTILE_95", "crossSeriesReducer": "REDUCE_MAX", "groupByFields": ["resource.label.service_name"]}],
+      "trigger": {"count": 1}
+    }
+  }]
+}

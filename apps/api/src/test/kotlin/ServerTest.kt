@@ -1,8 +1,10 @@
 package org.sedaiadesigns
 
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
@@ -50,5 +52,30 @@ class ServerTest {
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
     assertTrue(response.bodyAsText().contains("\"owner\":\"Sakura Sedaia\""))
+  }
+
+  @Test
+  fun `portfolio endpoint allows the production portfolio origin`() = testApplication {
+    configure()
+
+    val origin = "https://sakura-sedaia.com"
+    val response = client.get("/v1/portfolio/") {
+      header(HttpHeaders.Origin, origin)
+    }
+
+    assertEquals(HttpStatusCode.OK, response.status)
+    assertEquals(origin, response.headers[HttpHeaders.AccessControlAllowOrigin])
+  }
+
+  @Test
+  fun `portfolio endpoint does not allow an unknown origin`() = testApplication {
+    configure()
+
+    val response = client.get("/v1/portfolio/") {
+      header(HttpHeaders.Origin, "https://example.com")
+    }
+
+    assertEquals(HttpStatusCode.Forbidden, response.status)
+    assertEquals(null, response.headers[HttpHeaders.AccessControlAllowOrigin])
   }
 }

@@ -27,6 +27,13 @@ to preview the production build locally.
 
 The repository uses `pnpm-lock.yaml` to keep dependency installation reproducible.
 
+## API configuration
+
+Set `VITE_API_BASE_URL` in the Vercel project environment to the public API
+origin. Production uses `https://api.sedaia-designs.org`. The variable is
+reserved for the portfolio's asynchronous API helper; the static portfolio does
+not call the API during startup or rendering.
+
 ## Vercel deployment
 
 The repository includes `vercel.json` configured for Vercel's static deployment

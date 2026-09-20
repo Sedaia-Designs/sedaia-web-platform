@@ -1,5 +1,10 @@
 # Sedaia Designs Monorepo Plan
 
+> [!NOTE]
+> Archived pre-Obsidian plan. Remaining work is tracked in
+> `../Plans/MonorepoBuildout/Orchestration.md`; do not execute this note as the
+> active checklist.
+
 ## Purpose
 
 This repository will be rebuilt as a blank monorepo for two related domains:
@@ -9,11 +14,17 @@ This repository will be rebuilt as a blank monorepo for two related domains:
 
 The monorepo is a source-control and coordination boundary, not a single deployable application. Every public application must remain independently buildable and deployable.
 
-The repository is hosted in the **Sedaia Designs** GitLab group. Repository remotes use this form:
+The canonical repository is hosted in the **Sedaia Designs** GitHub
+organization at:
 
 ```text
-https://gitlab.com/sedaia-designs/repository
+git@github.com:Sedaia-Designs/sedaia-web-platform.git
 ```
+
+The GitHub repository began as a direct import mirror of the GitLab project.
+GitHub is the source of truth after cutover; GitLab must not remain an active
+deployment source once GitHub branch protection, Actions, and production
+environments have been validated.
 
 ## Domain and Hosting Map
 
@@ -112,9 +123,21 @@ Initial Cloud Run settings:
 - request-based billing;
 - minimum instances set to `0`;
 - startup CPU boost enabled;
-- an explicit maximum-instance limit;
-- API and data services located in the same Google Cloud region; and
-- public unauthenticated ingress only for explicitly public API routes.
+- maximum instances set to `3`;
+- container port `8080`;
+- ingress set to `all`, with unauthenticated access enabled for the public API;
+- `512Mi` of memory and `1` CPU per instance;
+- maximum concurrency set to `40` requests per instance;
+- request timeout set to `30s`; and
+- API and data services located in `us-central1`.
+
+Production runs as
+`sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com`.
+GitHub Actions deploys through a dedicated deployment service account using
+GitHub OpenID Connect and Google Cloud Workload Identity Federation. The
+runtime identity must not be used as the deployment identity. The current
+GitLab-specific provider and deployer account must be replaced or explicitly
+reconfigured for GitHub repository claims before the first GitHub deployment.
 
 If cold-start latency becomes unacceptable, the first operational change will be setting the minimum instance count to `1`. A custom GraalVM/native build is not part of the initial template.
 
@@ -175,9 +198,26 @@ The repository will have three logical environments:
 CI must run affected builds where possible, plus contract checks when either the API schema or API client changes. Production deployment responsibilities are split:
 
 - Vercel deploys each frontend from its application directory.
-- GitLab CI builds the API container and deploys it to Cloud Run.
+- GitHub Actions builds the API container and deploys it to Cloud Run.
 - Production API deployment runs only after JVM tests and container validation pass.
 - Database migrations, if introduced, run as an explicit deployment step or Cloud Run job, never implicitly on every application instance startup.
+
+Repository-host migration must preserve the existing deployment guarantees:
+
+- pull requests run path-filtered validation without production credentials;
+- production deployment is a manual action from the protected default branch;
+- the GitHub `production` environment requires the intended reviewer and
+  serializes deployments through an Actions concurrency group;
+- GitHub OIDC claims are restricted to this repository and the protected
+  production environment;
+- release and rollback manifests identify the GitHub Actions workflow run and
+  job rather than GitLab pipeline and job IDs; and
+- rollback provenance is verified against a retained GitHub Actions artifact
+  or a durable release-history store before production traffic changes.
+
+The GitLab pipeline remains migration input only. Disable GitLab deployments
+after an equivalent GitHub Actions workflow has passed validation and one
+controlled production deployment and rollback check.
 
 Secrets must not be committed. Vercel environment variables manage frontend/server-side web configuration, while Google Secret Manager or protected Cloud Run environment configuration manages API secrets.
 

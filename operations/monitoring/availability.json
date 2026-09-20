@@ -1,0 +1,18 @@
+{
+  "displayName": "sedaia-api: Cloud Run readiness unavailable",
+  "combiner": "OR",
+  "enabled": true,
+  "notificationChannels": ["__NOTIFICATION_CHANNEL__"],
+  "documentation": {"mimeType": "text/markdown", "content": "Symptom: /health/ready failed twice. Inspect Cloud Run service and revision logs for sedaia-api in us-central1. First checks: inspect the serving revision, its image digest, application errors, and dependencies. Roll back when the active revision caused the failures and recovery is not immediate. Owner: __NOTIFICATION_OWNER__."},
+  "conditions": [{
+    "displayName": "Two consecutive readiness failures",
+    "conditionThreshold": {
+      "filter": "metric.type=\"monitoring.googleapis.com/uptime_check/check_passed\" AND metric.label.check_id=\"__UPTIME_CHECK_ID__\"",
+      "comparison": "COMPARISON_LT",
+      "thresholdValue": 1,
+      "duration": "60s",
+      "aggregations": [{"alignmentPeriod": "60s", "perSeriesAligner": "ALIGN_NEXT_OLDER"}],
+      "trigger": {"count": 1}
+    }
+  }]
+}

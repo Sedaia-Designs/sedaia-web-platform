@@ -9,5 +9,6 @@ RUN ./gradlew :apps:api:buildFatJar --no-daemon
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /workspace/apps/api/build/libs/*-all.jar ./ktor-api.jar
-# The container will rely on the PORT environment variable injected by Cloud Run
+EXPOSE 8080
+# Cloud Run injects PORT; application.yaml uses 8080 as the local fallback.
 CMD ["java", "-jar", "ktor-api.jar"]
