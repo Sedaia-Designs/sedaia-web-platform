@@ -73,13 +73,13 @@ ID. Do not manufacture an outage.
 
 | Drill field | Evidence |
 | --- | --- |
-| Date/window | Pending |
-| Current and previous deployment run URLs | Pending |
-| Rollback workflow run and manifest | Pending |
-| Recovery time | Pending |
-| Monitoring and notification result | Pending |
-| Restore workflow run and manifest | Pending |
-| Runbook corrections | Pending |
+| Date/window | 2026-09-20 22:44:49Z through 22:45:50Z |
+| Current and previous releases | `sedaia-api-00003-jwp` / build `1ab86964-ca14-434b-b8bf-b6699db08bcd`; `sedaia-api-00002-z9z` / build `ab3fbd1d-b7dc-4621-aec0-af7a95d45ace` |
+| Rollback result | 100 percent traffic to `sedaia-api-00002-z9z`; generated and canonical endpoint verification passed |
+| Recovery time | Rollback verified within 39 seconds of the pre-change capture; full rollback-and-restore drill completed in 61 seconds |
+| Monitoring and notification result | Request logs correlated with both revisions; hosted alert policies and notification delivery remain pending |
+| Restore result | 100 percent traffic restored to `sedaia-api-00003-jwp`; generated and canonical endpoint verification passed |
+| Runbook corrections | Record automatic Cloud Build IDs and immutable digests when no GitHub deployment artifact exists; do not claim alert validation until hosted policies are configured |
 
 The Cloud Run configuration caps the service at three instances. Revisit that
 capacity and cost limit using production traffic evidence before raising it.
