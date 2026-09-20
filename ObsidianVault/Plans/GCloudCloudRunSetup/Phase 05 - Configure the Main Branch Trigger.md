@@ -150,7 +150,7 @@ Do not pass `_REGION`, `_ARTIFACT_REPOSITORY`, `_SERVICE`, or `_RUNTIME_SERVICE_
 
 ### Validate the first automatic deployment
 
-- [ ] Run the trigger once from a harmless reviewed API change and compare its deployed configuration with the manual deployment.
+- [x] Run the trigger once from a harmless reviewed API change and compare its deployed configuration with the manual deployment. Verified 2026-09-20 from merged pull request #1.
 
 Merge one harmless, reviewed API change after all required CI checks pass. Record the merge commit SHA, then confirm Cloud Build produced exactly one build for it:
 
@@ -165,6 +165,25 @@ gcloud builds list \
 ```
 
 Require one row with status `SUCCESS` and trigger name `sedaia-api-main`. Record the build ID, image digest, deployed revision, builder identity, and verification output. Compare the resulting Cloud Run service account, ingress, port, scaling, resources, concurrency, timeout, startup probe, liveness probe, labels, image digest, and traffic allocation with the manually verified Phase 04 deployment. Run `scripts/verify-api-deployment.sh` against the generated Cloud Run URL and do not complete this phase unless the new revision is ready, receives 100 percent of traffic, and passes the full smoke test.
+
+#### First automatic deployment evidence
+
+**Verified 2026-09-20.** Pull request #1 merged `dev` into `main` as commit `87c6411d982d766bd251fe2a8def7c91a9180a77`. Exactly one regional build matched that commit: build `ab3fbd1d-b7dc-4621-aec0-af7a95d45ace`, created by trigger `sedaia-api-main`, completed with status `SUCCESS` from 14:51:19 UTC through 14:58:26 UTC. The `test-api`, `build-image`, `push-image`, and `deploy-cloud-run` steps all succeeded.
+
+![[Evidence/2026-09-20-first-automatic-cloud-build.png]]
+
+Evidence SHA-256: `3c7fdf37fdbc81d3ede30a1b00b94f5a1ea455d67a8f70e65db9e96507147356`
+
+- [x] Builder identity: `sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com`.
+- [x] Image tag: `us-central1-docker.pkg.dev/sedaia-web-platform-api-508804/sedaia-repo/sedaia-api:ab3fbd1d-b7dc-4621-aec0-af7a95d45ace`.
+- [x] Image digest: `sha256:deb6241027cbe4f661bb2a3a86b5f18a13813b7147f4f1d1e20cb8fe5d47f9d2`.
+- [x] Ready revision: `sedaia-api-00002-z9z`, labeled with the matching build ID and `managed-by=cloud-build`.
+- [x] Runtime identity: `sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com`.
+- [x] Traffic: the latest-created and latest-ready revision are both `sedaia-api-00002-z9z`, receiving 100 percent.
+- [x] Configuration matches the manually verified deployment: ingress `all`, port `8080`, minimum instances `0` by default, maximum instances `3`, CPU `1`, memory `512Mi`, concurrency `40`, timeout `30s`, and the documented startup and liveness probes.
+- [x] `scripts/verify-api-deployment.sh` passed at 15:09:33 UTC against `https://sedaia-api-gf5626wkfq-uc.a.run.app`, including readiness, portfolio HTTP/JSON, and CORS for `https://sakura-sedaia.com`.
+
+**Result:** Phase 05 is complete. The reviewed merge commit produced exactly one successful regional build and one healthy Cloud Run revision using the dedicated build and runtime identities.
 
 ## Exit criterion
 
