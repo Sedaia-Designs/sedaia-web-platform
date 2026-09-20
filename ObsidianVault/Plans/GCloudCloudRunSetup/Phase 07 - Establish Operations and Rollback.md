@@ -1,18 +1,18 @@
 # Phase 07 - Establish Operations and Rollback
 
+## Status
+
+Repository preparation is in progress. Cloud Run release manifests, revision-based rollback automation, Cloud Run monitoring filters, and reviewable alert templates are implemented. Hosted alert creation, notification testing, retention proof, and the controlled rollback drill remain pending.
+
 ## Goal
 
 Make every release observable and recoverable by revision or immutable digest.
 
 ## Work
 
-- [ ] Change release manifests from App Engine versions to Cloud Run revision
-  names, Artifact Registry digest references, service URL, source commit, build
-  ID, and final traffic allocation.
-- [ ] Update monitoring filters from `gae_app` and App Engine metrics to Cloud
-  Run `cloud_run_revision` metrics and logs.
-- [ ] Create readiness availability, HTTP 5xx, latency, and container startup
-  failure alerts with an owned notification channel.
+- [x] Change release manifests from App Engine versions to Cloud Run revision names, Artifact Registry digest references, service URL, source commit, build ID, and final traffic allocation.
+- [x] Update monitoring filters from `gae_app` and App Engine metrics to Cloud Run `cloud_run_revision` metrics and logs.
+- [ ] Create readiness availability, HTTP 5xx, latency, and container startup failure alerts with an owned notification channel. Reviewable policy templates now cover all four signals; applying them and proving delivery to the production owner remain pending.
 - [ ] Apply an Artifact Registry cleanup policy only after proving it retains
   the current and previous known-good digests for the rollback window.
 - [ ] Store successful release evidence for at least 30 days.
