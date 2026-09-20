@@ -106,9 +106,9 @@ jobs:
           gcloud run revisions describe "$CLOUD_RUN_REVISION" \
             --project="$GCP_PROJECT_ID" --region="$CLOUD_RUN_REGION" \
             --format=json > release-manifests/revision.json
-          jq -e --arg revision "$CLOUD_RUN_REVISION" --arg digest "$IMAGE_DIGEST" --arg build_id "$CLOUD_BUILD_ID" '
+          jq -e --arg revision "$CLOUD_RUN_REVISION" --arg image_uri "$IMAGE_URI" --arg build_id "$CLOUD_BUILD_ID" '
             .metadata.name == $revision and .metadata.labels["build-id"] == $build_id and
-            .status.imageDigest == $digest and
+            .status.imageDigest == $image_uri and .spec.containers[0].image == $image_uri and
             any(.status.conditions[]; .type == "Ready" and .status == "True")
           ' release-manifests/revision.json >/dev/null
           jq -e --arg revision "$CLOUD_RUN_REVISION" '

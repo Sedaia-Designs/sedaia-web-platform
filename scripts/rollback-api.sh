@@ -26,19 +26,21 @@ jq -e --arg project "${GCP_PROJECT_ID}" --arg region "${CLOUD_RUN_REGION}" --arg
 
 target_revision="$(jq -r '.cloud_run.revision' "${manifest}")"
 target_digest="$(jq -r '.image.digest' "${manifest}")"
+target_image_uri="$(jq -r '.image.uri' "${manifest}")"
 service_url="$(jq -r '.cloud_run.service_url' "${manifest}")"
 
 revision_json="$(gcloud run revisions describe "${target_revision}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format=json)"
 [ "$(printf '%s' "${revision_json}" | jq -r '.metadata.name')" = "${target_revision}" ]
-[ "$(printf '%s' "${revision_json}" | jq -r '.status.imageDigest')" = "${target_digest}" ]
+[ "$(printf '%s' "${revision_json}" | jq -r '.status.imageDigest')" = "${target_image_uri}" ]
 
 gcloud run services describe "${CLOUD_RUN_SERVICE}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" \
   --format=json > rollback-service-before.json
 source_revision="$(jq -r '.status.traffic | max_by(.percent).revisionName' rollback-service-before.json)"
-source_digest="$(gcloud run revisions describe "${source_revision}" \
+source_image_uri="$(gcloud run revisions describe "${source_revision}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format='value(status.imageDigest)')"
+source_digest="${source_image_uri##*@}"
 started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 printf 'Cloud Run rollback target\n  project: %s\n  region: %s\n  service: %s\n  current revision: %s\n  target revision: %s\n  target digest: %s\n' \

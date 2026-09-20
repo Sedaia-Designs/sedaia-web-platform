@@ -68,13 +68,15 @@ jq -e \
 
 target_revision="$(jq -r '.cloud_run.revision' "${supplied_manifest}")"
 target_digest="$(jq -r '.image.digest' "${supplied_manifest}")"
+target_image_uri="$(jq -r '.image.uri' "${supplied_manifest}")"
 target_build_id="$(jq -r '.cloud_build.build_id' "${supplied_manifest}")"
 revision_json="$(gcloud run revisions describe "${target_revision}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format=json)"
 existing_revision="$(printf '%s' "${revision_json}" | jq -r '.metadata.name')"
-existing_digest="$(printf '%s' "${revision_json}" | jq -r '.status.imageDigest')"
+existing_image_uri="$(printf '%s' "${revision_json}" | jq -r '.status.imageDigest')"
 [ "${existing_revision}" = "${target_revision}" ]
-[ "${existing_digest}" = "${target_digest}" ]
+[ "${existing_image_uri}" = "${target_image_uri}" ]
+[ "${existing_image_uri##*@}" = "${target_digest}" ]
 [ "$(printf '%s' "${revision_json}" | jq -r '.metadata.labels["build-id"]')" = "${target_build_id}" ]
 
 cp "${supplied_manifest}" "${verified_output}"
