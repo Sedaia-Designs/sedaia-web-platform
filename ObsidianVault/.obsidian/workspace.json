@@ -11,14 +11,10 @@
             "id": "4b342fa17f7e43ec",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Plans/GCloudCloudRunSetup/Phase 05 - Configure the Main Branch Trigger.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "Phase 05 - Configure the Main Branch Trigger"
+              "title": "New tab"
             }
           }
         ]
@@ -99,7 +95,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Plans/GitHubActionsMigration/Orchestration.md",
+                "file": "Plans/GCloudCloudRunSetup/Phase 06 - Cut Over the API Domain.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -190,6 +186,9 @@
   },
   "active": "4b342fa17f7e43ec",
   "lastOpenFiles": [
+    "Plans/GCloudCloudRunSetup/Phase 06 - Cut Over the API Domain.md",
+    "Plans/GCloudCloudRunSetup/Phase 05 - Configure the Main Branch Trigger.md",
+    "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-first-automatic-cloud-build.png",
     "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-required-check-source-options.png",
     "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-main-ruleset-expanded.png",
     "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-main-ruleset.png",
@@ -204,8 +203,6 @@
     "Plans/GitHubActionsMigration/Phase 00 - Capability Gate.md",
     "Plans/GCloudCloudRunSetup/Phase 08 - Final Verification.md",
     "Plans/GCloudCloudRunSetup/Phase 07 - Establish Operations and Rollback.md",
-    "Plans/GCloudCloudRunSetup/Phase 06 - Cut Over the API Domain.md",
-    "Plans/GCloudCloudRunSetup/Phase 05 - Configure the Main Branch Trigger.md",
     "Plans/GCloudCloudRunSetup",
     "Architecture/API Contract and Data Flow.md",
     "Random notes.md",
