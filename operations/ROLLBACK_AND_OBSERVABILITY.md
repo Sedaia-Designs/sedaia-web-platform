@@ -13,7 +13,8 @@ An operator with appropriate Logging and Monitoring access must configure and
 verify:
 
 - an HTTPS uptime check for the Cloud Run service URL's `/health/ready` path;
-- enabled alerts for readiness, application 5xx responses, and p95 latency;
+- enabled alerts for readiness, application 5xx responses, p95 latency, and
+  container startup failures;
 - at least 30 days of application log retention;
 - a notification channel attached to every production alert; and
 - a real test notification received by the named production owner.
@@ -22,6 +23,13 @@ The JSON files in `operations/monitoring/` are reviewable policy templates.
 Replace their notification-channel and uptime-check placeholders before use and
 verify metric descriptors against the target project. Repository configuration
 cannot prove that a human received a notification, so record the hosted test.
+The container-startup policy depends on a counter logs-based metric named
+`cloud_run_container_startup_failures`. Create it from Cloud Run revision
+system logs at severity `ERROR` or higher, scoped to service `sedaia-api` and
+location `us-central1`, then deliberately test its filter against a failed
+non-serving revision before enabling the alert. This keeps generic application
+errors out of the startup signal and avoids treating slow successful starts as
+failures.
 
 | Check | Evidence |
 | --- | --- |
@@ -31,6 +39,7 @@ cannot prove that a human received a notification, so record the hosted test.
 | Readiness policy enabled | Pending operator setup |
 | Application-error policy enabled | Pending operator setup |
 | p95 latency policy enabled | Pending operator setup |
+| Container-startup policy enabled | Pending operator setup |
 
 ## Deploy and roll back
 
