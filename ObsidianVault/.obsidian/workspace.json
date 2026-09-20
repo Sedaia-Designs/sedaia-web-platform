@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Plans/GCloudCloudRunSetup/Phase 04 - Run the First Controlled Deployment.md",
+                "file": "Plans/GCloudCloudRunSetup/Phase 05 - Configure the Main Branch Trigger.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Phase 04 - Run the First Controlled Deployment"
+              "title": "Phase 05 - Configure the Main Branch Trigger"
             }
           }
         ]
@@ -190,6 +190,12 @@
   },
   "active": "4b342fa17f7e43ec",
   "lastOpenFiles": [
+    "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-required-check-source-options.png",
+    "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-main-ruleset-expanded.png",
+    "Plans/GCloudCloudRunSetup/Evidence/2026-09-20-github-main-ruleset.png",
+    "Plans/GCloudCloudRunSetup/Evidence/2026-09-19-cloud-build-github-repository-connection.png",
+    "Plans/GCloudCloudRunSetup/Evidence",
+    "Plans/GCloudCloudRunSetup/Phase 04 - Run the First Controlled Deployment.md",
     "Plans/GCloudCloudRunSetup/Phase 03 - Align the Build Configuration.md",
     "Plans/GCloudCloudRunSetup/Phase 02 - Grant Build IAM.md",
     "Plans/GCloudCloudRunSetup/Phase 01 - Enable APIs and Establish Identities.md",
@@ -200,7 +206,6 @@
     "Plans/GCloudCloudRunSetup/Phase 07 - Establish Operations and Rollback.md",
     "Plans/GCloudCloudRunSetup/Phase 06 - Cut Over the API Domain.md",
     "Plans/GCloudCloudRunSetup/Phase 05 - Configure the Main Branch Trigger.md",
-    "Plans/GCloudCloudRunSetup/Phase 04 - Run the First Controlled Deployment.md",
     "Plans/GCloudCloudRunSetup",
     "Architecture/API Contract and Data Flow.md",
     "Random notes.md",
@@ -217,7 +222,6 @@
     "Plans/GitHubActionsMigration/Orchestration.md",
     "Architecture.md",
     "Failures/App Engine Gradle Configuration Cache Failure.md",
-    "Manifesto.md",
     "Failures",
     "Plans/ProductionReadiness",
     "Plans/MonorepoBuildout",
