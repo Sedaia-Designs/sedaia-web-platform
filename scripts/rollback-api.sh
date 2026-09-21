@@ -17,7 +17,7 @@ manifest="$1"
 
 jq -e --arg project "${GCP_PROJECT_ID}" --arg region "${CLOUD_RUN_REGION}" --arg service "${CLOUD_RUN_SERVICE}" '
   .cloud_run.revision as $revision |
-  .schema_version == 3 and .status == "known-good" and
+  .schema_version == 1 and .status == "known-good" and
   .cloud_run.project == $project and .cloud_run.region == $region and .cloud_run.service == $service and
   .image.uri == (.image.repository + "@" + .image.digest) and
   .verification.readiness.passed and .verification.portfolio_json.passed and .verification.portfolio_cors.passed and

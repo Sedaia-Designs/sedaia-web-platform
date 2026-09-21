@@ -1,7 +1,6 @@
 # API rollback and observability runbook
 
-Production release and rollback evidence is retained by GitHub Actions for 30
-days. The rollback unit is an immutable Cloud Run revision of service
+Routine production release evidence is retained in the private Cloud Storage bucket `gs://sedaia-api-release-evidence-sedaia-web-platform-api-508804/BUILD_ID/` under a 30-day retention policy. Rollback-run evidence is retained by GitHub Actions for 30 days. The rollback unit is an immutable Cloud Run revision of service
 `sedaia-api` in `us-central1`, paired with its `sha256` Artifact Registry image
 digest. Do not delete a revision or image digest referenced by a retained
 known-good manifest. Artifact Registry cleanup policies must retain those
@@ -12,6 +11,8 @@ digests for at least as long as the GitHub release artifacts.
 An operator with appropriate Logging and Monitoring access must configure and
 verify:
 
+- a repository-and-`main`-bound GitHub OIDC provider and dedicated rollback service account with Cloud Build read, Cloud Run developer, and release-evidence object-read access;
+- `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT` variables in the protected GitHub `production` environment;
 - an HTTPS uptime check for the Cloud Run service URL's `/health/ready` path;
 - enabled alerts for readiness, application 5xx responses, p95 latency, and
   container startup failures;
@@ -42,17 +43,9 @@ Automatic Cloud Builds upload `release.json`, revision state, service state, fin
 
 ## Deploy and roll back
 
-Each successful `Deploy API` run publishes a release manifest only after the
-exact project, region, service, immutable revision and image digest, traffic,
-readiness, portfolio JSON, and CORS checks pass. The deployment workflow is
-manual, restricted to `main`, gated by the protected `production` environment,
-and serialized with the `production-api` concurrency group.
+Each successful regional `sedaia-api-main` build publishes a release manifest only after the exact repository, `main` commit, project, region, service, immutable revision and image digest, traffic, readiness, portfolio JSON, and CORS checks pass. The trigger is the sole routine deployer and runs `cloudbuild.yaml` as the dedicated builder service account. There is no manual GitHub deployment path.
 
-To restore a release, manually run `Roll back API` from `main` with the known-
-good deployment workflow run ID, an incident or drill reason, and the exact
-confirmation `rollback-production`. The workflow downloads the retained
-manifest, verifies its GitHub provenance, and confirms that its Cloud Run
-revision still exists with the recorded image digest before changing traffic.
+To restore a release, manually run `Roll back API` from `main` with a successful `sedaia-api-main` Cloud Build ID, an incident or drill reason, and the exact confirmation `rollback-production`. The workflow downloads `release.json` from that build's retained Cloud Storage prefix, verifies the build succeeded from the regional trigger on `main`, and confirms that its Cloud Run revision still exists with the recorded image digest before changing traffic.
 It assigns all service traffic to that existing revision, reruns smoke tests,
 and uploads machine-readable rollback evidence even when post-change
 verification fails. It never rebuilds or redeploys an old release.

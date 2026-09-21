@@ -1,5 +1,8 @@
 # GitHub Actions Migration
 
+> [!warning] Superseded on 2026-09-20
+> This plan is retained as historical evidence and must not be executed. Its App Engine and GitHub deployment statements describe an earlier design. The regional Cloud Build trigger is the routine deployer; continue remaining work in [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]].
+
 ## Summary
 
 Validate GitHub Actions as the production CI/CD path while retaining GitLab as
@@ -29,13 +32,7 @@ decision. It does not authorize removal of GitLab configuration.
 
 ## Current status
 
-**In progress.** The build-owned App Engine deployment path is proven by the
-successful direct deployment on 2026-09-18. Repository workflow alignment is
-complete: CI is credential-free, deployment invokes the Gradle contract with a
-deterministic version, and rollback changes traffic only to a verified existing
-version. Actions policy, environment protection, OIDC, ruleset, hosted CI,
-controlled deployment and rollback drills, stability, and cutover remain
-pending. Hosted state must not be inferred from checked-in files.
+**Superseded.** Historical GitHub settings, ruleset, OIDC, and App Engine evidence remain in this folder. GitHub Actions retains CI and a protected manual Cloud Run rollback, but it is not a production deployer. The regional `sedaia-api-main` trigger owns routine deployment, and [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]] owns all remaining work. The phase notes in this folder are not executable instructions.
 
 ## Recommended order
 

@@ -11,10 +11,15 @@ reference and are not active execution plans.
 ## Active plans
 
 - [[MonorepoBuildout/Orchestration|Monorepo buildout]]
-- [[ProductionReadiness/Orchestration|Production readiness]]
-- [[GitHubActionsMigration/Orchestration|GitHub Actions migration]]
-- [[GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]]
 - [[GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]]
+
+## Superseded and historical plans
+
+| Plan | Classification | Authority |
+| --- | --- | --- |
+| [[ProductionReadiness/Orchestration|Production readiness]] | Superseded; App Engine deployment evidence is historical | [[GCloudCloudRunRemediation/Orchestration]] |
+| [[GitHubActionsMigration/Orchestration|GitHub Actions migration]] | Superseded; GitHub configuration evidence is historical and GitHub deployment is not active | [[GCloudCloudRunRemediation/Orchestration]] |
+| [[GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]] | Historical execution record; incomplete gates moved to remediation | [[GCloudCloudRunRemediation/Orchestration]] |
 
 ## Pre-Obsidian audit
 

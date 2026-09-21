@@ -1,5 +1,8 @@
 # Production Readiness
 
+> [!warning] Superseded on 2026-09-20
+> This plan is retained as historical evidence and must not be executed. App Engine statements below describe the 2026-09-18 deployment record, not current deployment authority. Continue all remaining production-readiness work in [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]].
+
 ## Summary
 
 Finish the external configuration and production exercises needed to make the
@@ -34,10 +37,4 @@ primary gaps.
 
 ## Current status
 
-**In progress.** Repository readiness is complete, and a first direct App
-Engine deployment succeeded on 2026-09-18 at
-`https://sedaia-web-platform-api-508804.uc.r.appspot.com`. Custom-domain,
-Vercel, GitHub Actions/OIDC, monitoring, smoke-test, and rollback evidence
-remain pending. The hosting target must also be reconciled: the active
-automation and runbooks describe Cloud Run, while the demonstrated deployment
-uses App Engine Standard.
+**Superseded.** The direct App Engine deployment remains historical evidence. Cloud Run is the production architecture, the regional `sedaia-api-main` trigger is the routine deployer, and remaining contract, deployment-safety, IAM, monitoring, legacy-retirement, and final-verification work is owned by [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]]. The phase notes in this folder are not executable instructions.
