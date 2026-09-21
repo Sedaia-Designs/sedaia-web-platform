@@ -8,6 +8,21 @@ servers:
   - url: https://api.sedaia-designs.org
 
 paths:
+  /v1/:
+    get:
+      operationId: getApiMetadata
+      summary: Get API metadata
+      security: []
+      tags:
+        - Metadata
+      responses:
+        "200":
+          description: API name and version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiMetadata"
+
   /v1/portfolio/content:
     get:
       operationId: getPortfolio
@@ -27,18 +42,37 @@ paths:
 
 components:
   schemas:
+    ApiMetadata:
+      type: object
+      required:
+        - name
+        - version
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Sedaia Designs API
+        version:
+          type: string
+          minLength: 1
+          example: v1
+
     Portfolio:
       type: object
       required:
         - programming
         - contact
+      additionalProperties: false
       properties:
         programming:
           type: array
+          minItems: 1
           items:
             $ref: "#/components/schemas/Programming"
         contact:
           type: array
+          minItems: 1
           items:
             $ref: "#/components/schemas/Contact"
 
@@ -49,11 +83,14 @@ components:
         - description
         - projectPage
         - sourceCode
+      additionalProperties: false
       properties:
         title:
           type: string
+          minLength: 1
         description:
           type: string
+          minLength: 1
         projectPage:
           type: string
           format: uri
@@ -70,8 +107,10 @@ components:
       required:
         - type
         - label
+        - icon
         - value
         - href
+      additionalProperties: false
       properties:
         type:
           type: string
@@ -81,6 +120,7 @@ components:
             - telegram
         label:
           type: string
+          minLength: 1
         icon:
           type: string
           enum:
@@ -102,6 +142,7 @@ components:
             - globe
         value:
           type: string
+          minLength: 1
         href:
           type: string
           format: uri

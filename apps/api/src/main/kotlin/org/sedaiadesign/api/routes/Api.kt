@@ -1,11 +1,11 @@
 package org.sedaiadesign.api.routes
 
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 
+import org.sedaiadesign.api.models.response.ApiMetadataResponse
 import org.sedaiadesign.api.models.response.PortfolioResponse
 import org.sedaiadesign.api.models.response.portfolio.ContactResponse
 import org.sedaiadesign.api.models.response.portfolio.ProgrammingResponse
@@ -14,7 +14,12 @@ import org.sedaiadesign.api.models.types.ContactType
 
 fun Route.apiRoutes() {
   get("/") {
-    call.respondText("Hello Ktor!")
+    call.respond(
+      ApiMetadataResponse(
+        name = "Sedaia Designs API",
+        version = "v1"
+      )
+    )
   }
   route("/portfolio") {
     get("/content") {

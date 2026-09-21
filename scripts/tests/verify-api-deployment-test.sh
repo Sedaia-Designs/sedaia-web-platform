@@ -1,0 +1,86 @@
+#!/bin/sh
+
+set -eu
+
+readonly repository_root="$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)"
+readonly verifier="${repository_root}/scripts/verify-api-deployment.sh"
+readonly test_directory="$(mktemp -d)"
+readonly fixture_classpath="$(
+  "${repository_root}/gradlew" --quiet --no-configuration-cache :apps:api:printTestRuntimeClasspath
+)"
+server_pid=""
+
+cleanup() {
+  if [ -n "${server_pid}" ]; then
+    kill "${server_pid}" 2>/dev/null || true
+    wait "${server_pid}" 2>/dev/null || true
+  fi
+  rm -rf "${test_directory}"
+}
+
+trap cleanup EXIT INT TERM
+
+run_case() {
+  scenario="$1"
+  expected_result="$2"
+  port_file="${test_directory}/${scenario}.port"
+  output_file="${test_directory}/${scenario}.out"
+  result_file="${test_directory}/${scenario}.json"
+
+  java -cp "${fixture_classpath}" ApiFixtureServerKt "${scenario}" "${port_file}" &
+  server_pid=$!
+
+  attempts=0
+  while [ ! -s "${port_file}" ]; do
+    attempts=$((attempts + 1))
+    if [ "${attempts}" -ge 50 ]; then
+      printf 'Fixture server for %s did not start.\n' "${scenario}" >&2
+      exit 1
+    fi
+    sleep 0.1
+  done
+
+  port="$(cat "${port_file}")"
+  if DEPLOYMENT_READINESS_TIMEOUT_SECONDS=1 \
+    DEPLOYMENT_READINESS_RETRY_DELAY_SECONDS=0 \
+    "${verifier}" "http://127.0.0.1:${port}" "${result_file}" >"${output_file}" 2>&1; then
+    actual_result="pass"
+  else
+    actual_result="fail"
+  fi
+
+  kill "${server_pid}" 2>/dev/null || true
+  wait "${server_pid}" 2>/dev/null || true
+  server_pid=""
+
+  if [ "${actual_result}" != "${expected_result}" ]; then
+    printf 'Expected %s to %s but it %sed. Output:\n' \
+      "${scenario}" "${expected_result}" "${actual_result}" >&2
+    cat "${output_file}" >&2
+    exit 1
+  fi
+
+  if [ "${expected_result}" = "pass" ]; then
+    jq --exit-status '
+      .readiness.passed == true and
+      .api_metadata.passed == true and
+      .portfolio_contract.passed == true and
+      .portfolio_contract.programming_policy == "non-empty" and
+      .portfolio_cors.denied_http_status == 403
+    ' "${result_file}" >/dev/null
+  elif [ -e "${result_file}" ]; then
+    printf 'Failed scenario %s unexpectedly produced success evidence.\n' "${scenario}" >&2
+    exit 1
+  fi
+
+  printf 'PASS: %s (%s expected)\n' "${scenario}" "${expected_result}"
+}
+
+run_case valid pass
+run_case malformed-json fail
+run_case missing-field fail
+run_case wrong-type fail
+run_case invalid-cors fail
+run_case timeout fail
+run_case readiness-non-200 fail
+run_case portfolio-non-200 fail

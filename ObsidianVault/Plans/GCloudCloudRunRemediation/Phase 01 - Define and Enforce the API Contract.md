@@ -2,22 +2,22 @@
 
 ## Goal
 
-Make the production smoke test prove the response contract implemented by `../../../apps/api/src/main/kotlin/routes/Api.kt` instead of merely proving that an endpoint returned some JSON object.
+Make the production smoke test prove the response contract implemented by `../../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt` instead of merely proving that an endpoint returned some JSON object.
 
 ## Decisions before editing
 
-- [ ] Decide whether an empty `projects` array is valid production content. If valid, document it and test the empty-array case. If not valid, connect the intended data source or provide reviewed production content; do not add invented placeholder projects solely to satisfy a test.
-- [ ] Decide the `/v1/` behavior. Replace `Hello Ktor!` with a documented JSON metadata response or intentionally remove the route and test the selected status. Keep the OpenAPI document aligned.
-- [ ] Confirm the stable public fields for `PortfolioResponse`: `owner`, `headline`, and `projects`, plus `id`, `title`, and nullable or optional `description` for each project.
+- [x] Require non-empty `programming` and `contact` arrays. The route already contains reviewed production content, so no placeholder content was added.
+- [x] Define `/v1/` as JSON metadata with the exact stable response `{"name":"Sedaia Designs API","version":"v1"}` and document it in OpenAPI.
+- [x] Confirm the implemented stable `PortfolioResponse` fields: `programming` and `contact`; programming items require `title`, `description`, `projectPage`, and `sourceCode`, with optional nullable `documentation`; contact items require `type`, `label`, `icon`, `value`, and `href`.
 
 ## Work
 
-- [ ] Replace substring assertions in `../../../apps/api/src/test/kotlin/ServerTest.kt` with deserialization or structural JSON assertions for exact required fields, field types, intentional values, and the chosen project-list policy.
-- [ ] Add tests for missing or wrong fields where contract validation code exists, allowed production origins, a denied unknown origin, content type, and the selected `/v1/` behavior.
-- [ ] Keep `../../../packages/api-client/openapi.yaml`, Kotlin response models, `Api.kt`, and tests synchronized. Add schema constraints such as non-empty strings or minimum project count only when they express an actual product requirement.
-- [ ] Strengthen `../../../scripts/verify-api-deployment.sh` so readiness requires the expected JSON body and the portfolio check validates required keys, types, non-empty stable strings, every project item, and the chosen empty/non-empty policy. Add a negative CORS check using an untrusted origin.
-- [ ] Record the contract checks in the machine-readable verification result so release evidence shows more than HTTP 200 and generic JSON success.
-- [ ] Add automated tests for the verification script using fixture responses or a local test server, covering valid payload, malformed JSON, missing fields, wrong types, invalid CORS, timeout, and non-200 responses.
+- [x] Replace partial assertions in `../../../apps/api/src/test/kotlin/org/sedaiadesign/api/ServerTest.kt` with structural JSON assertions for exact route fields, types, intentional values, and non-empty lists.
+- [x] Test allowed production CORS origins, a denied unknown origin, response content types, and the selected `/v1/` metadata behavior. Missing fields and wrong types are covered at the deployment-contract boundary by the verifier fixtures.
+- [x] Keep `../../../packages/api-client/openapi.yaml`, Kotlin response models, `Api.kt`, and tests synchronized, including non-empty strings and minimum list sizes that reflect the chosen production policy.
+- [x] Strengthen `../../../scripts/verify-api-deployment.sh` so readiness requires an empty JSON object with the JSON content type, metadata is exact, portfolio fields and item types are validated, lists are non-empty, and an untrusted origin must receive HTTP 403 without a CORS allow header.
+- [x] Record readiness, metadata, portfolio schema policy, allowed-origin behavior, and denied-origin behavior in the machine-readable verification result.
+- [x] Add `../../../scripts/tests/verify-api-deployment-test.sh` and a JVM fixture server covering valid payload, malformed JSON, missing fields, wrong types, invalid CORS, timeout, readiness non-200, and portfolio non-200 responses.
 
 ## Verification
 
@@ -29,6 +29,8 @@ git diff --check
 
 Do not point the strengthened script at production until its negative cases have been proven locally and the selected API content policy is documented.
 
+Local verification completed on 2026-09-20: all verifier fixtures passed, `./gradlew :apps:api:check :apps:api:buildFatJar --no-daemon` succeeded, and `git diff --check` succeeded. Production was not contacted.
+
 ## Exit criterion
 
-The route implementation, models, OpenAPI document, Kotlin tests, deployment smoke test, and release evidence enforce one explicit contract, including the intentional handling of `projects` and `/v1/`.
+The route implementation, models, OpenAPI document, Kotlin tests, deployment smoke test, and release evidence enforce one explicit contract, including non-empty `programming` and `contact` collections and the documented `/v1/` metadata response.

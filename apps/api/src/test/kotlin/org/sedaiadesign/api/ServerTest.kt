@@ -14,6 +14,8 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class ServerTest {
 
@@ -40,10 +42,18 @@ class ServerTest {
   }
 
   @Test
-  fun `versioned root endpoint responds`() = testApplication {
+  fun `versioned root endpoint describes the api`() = testApplication {
     configure()
 
-    assertEquals(HttpStatusCode.OK, client.get("/v1/").status)
+    val response = client.get("/v1/")
+
+    assertEquals(HttpStatusCode.OK, response.status)
+    assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
+    assertEquals(
+      mapOf("name" to "Sedaia Designs API", "version" to "v1"),
+      Json.parseToJsonElement(response.bodyAsText()).jsonObject
+        .mapValues { it.value.jsonPrimitive.content }
+    )
   }
 
   @Test
@@ -55,19 +65,34 @@ class ServerTest {
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
 
-    val projects = Json.parseToJsonElement(response.bodyAsText())
-      .jsonObject["programming"]!!
-      .jsonArray
+    val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
+    assertEquals(setOf("programming", "contact"), body.keys)
+
+    val projects = assertNotNull(body["programming"]).jsonArray
 
     assertEquals(2, projects.size)
-    assertEquals(
-      "Blender Development for Pycharm",
-      projects[0].jsonObject["title"]!!.jsonPrimitive.content
-    )
-    assertEquals(
-      "Advanced Character Rig",
-      projects[1].jsonObject["title"]!!.jsonPrimitive.content
-    )
+    projects.forEach { projectElement ->
+      val project = projectElement.jsonObject
+      assertEquals(
+        setOf("title", "description", "projectPage", "sourceCode", "documentation"),
+        project.keys
+      )
+      listOf("title", "description", "projectPage", "sourceCode").forEach { field ->
+        assertTrue(assertNotNull(project[field]).jsonPrimitive.content.isNotBlank())
+      }
+      assertTrue(assertNotNull(project["projectPage"]).jsonPrimitive.content.startsWith("https://"))
+      assertTrue(assertNotNull(project["sourceCode"]).jsonPrimitive.content.startsWith("https://"))
+    }
+    assertEquals("Blender Development for Pycharm", projects[0].jsonObject["title"]!!.jsonPrimitive.content)
+    assertEquals("Advanced Character Rig", projects[1].jsonObject["title"]!!.jsonPrimitive.content)
+
+    val contacts = assertNotNull(body["contact"]).jsonArray
+    assertEquals(3, contacts.size)
+    contacts.forEach { contactElement ->
+      val contact = contactElement.jsonObject
+      assertEquals(setOf("type", "label", "icon", "value", "href"), contact.keys)
+      contact.values.forEach { value -> assertTrue(value.jsonPrimitive.content.isNotBlank()) }
+    }
   }
 
   @Test
