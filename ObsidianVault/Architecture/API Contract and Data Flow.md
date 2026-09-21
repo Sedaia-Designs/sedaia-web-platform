@@ -22,7 +22,7 @@ operationId: getPortfolio
 500: unexpected server error
 ```
 
-The `Portfolio` and `PortfolioProject` schemas match the Kotlin response types in field names, required fields, and nullable/optional `description` behavior.
+The `Portfolio` and `Programming` schemas match the Kotlin response types in field names, required fields, and nullable/optional `description` behavior.
 
 ## Current data flow
 
@@ -68,7 +68,7 @@ Only the Ktor endpoint and CORS portion are implemented. The client, frontend st
 
 - The OpenAPI contract, Ktor route, tests, and deployment smoke checks use `/v1/portfolio/content` as the canonical portfolio-content endpoint.
 - CI lints OpenAPI syntax/style but does not compare the document to Kotlin routes or validate live responses against its schemas.
-- The API test asserts only that the serialized body contains the owner. It does not check every required field or project serialization.
+- The API test asserts the current programming item count and titles. It does not validate every response field or the live response against OpenAPI.
 - The contract declares HTTP 500 but the application has no configured StatusPages mapping for a stable error schema.
 - Contract metadata says API version `1.0.0`, while the Gradle project is `1.0.0-SNAPSHOT`; these version domains are not currently coupled.
 

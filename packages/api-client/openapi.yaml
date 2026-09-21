@@ -8,7 +8,7 @@ servers:
   - url: https://api.sedaia-designs.org
 
 paths:
-  /v1/portfolio:
+  /v1/portfolio/content:
     get:
       operationId: getPortfolio
       summary: Get public portfolio information
@@ -30,30 +30,78 @@ components:
     Portfolio:
       type: object
       required:
-        - owner
-        - headline
-        - projects
+        - programming
+        - contact
       properties:
-        owner:
-          type: string
-          example: Sakura Sedaia
-        headline:
-          type: string
-          example: Designer and developer
-        projects:
+        programming:
           type: array
           items:
-            $ref: "#/components/schemas/PortfolioProject"
+            $ref: "#/components/schemas/Programming"
+        contact:
+          type: array
+          items:
+            $ref: "#/components/schemas/Contact"
 
-    PortfolioProject:
+    Programming:
       type: object
       required:
-        - id
         - title
+        - description
+        - projectPage
+        - sourceCode
       properties:
-        id:
-          type: string
         title:
           type: string
         description:
           type: string
+        projectPage:
+          type: string
+          format: uri
+        sourceCode:
+          type: string
+          format: uri
+        documentation:
+          type: string
+          format: uri
+          nullable: true
+
+    Contact:
+      type: object
+      required:
+        - type
+        - label
+        - value
+        - href
+      properties:
+        type:
+          type: string
+          enum:
+            - email
+            - discord_user
+            - telegram
+        label:
+          type: string
+        icon:
+          type: string
+          enum:
+            - discord
+            - github
+            - youtube
+            - deviantart
+            - codeberg
+            - gumroad
+            - instagram
+            - pinterest
+            - reddit
+            - twitch
+            - twitter
+            - patreon
+            - telegram
+            - pixiv
+            - envelope
+            - globe
+        value:
+          type: string
+        href:
+          type: string
+          format: uri

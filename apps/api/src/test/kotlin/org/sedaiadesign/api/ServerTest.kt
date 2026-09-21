@@ -8,9 +8,12 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class ServerTest {
 
@@ -51,7 +54,20 @@ class ServerTest {
 
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
-    assertTrue(response.bodyAsText().contains("\"owner\":\"Sakura Sedaia\""))
+
+    val projects = Json.parseToJsonElement(response.bodyAsText())
+      .jsonObject["programming"]!!
+      .jsonArray
+
+    assertEquals(2, projects.size)
+    assertEquals(
+      "Blender Development for Pycharm",
+      projects[0].jsonObject["title"]!!.jsonPrimitive.content
+    )
+    assertEquals(
+      "Advanced Character Rig",
+      projects[1].jsonObject["title"]!!.jsonPrimitive.content
+    )
   }
 
   @Test
@@ -59,7 +75,7 @@ class ServerTest {
     configure()
 
     val origin = "https://sakura-sedaia.com"
-    val response = client.get("/v1/portfolio/") {
+    val response = client.get("/v1/portfolio/content") {
       header(HttpHeaders.Origin, origin)
     }
 
@@ -71,7 +87,7 @@ class ServerTest {
   fun `portfolio endpoint does not allow an unknown origin`() = testApplication {
     configure()
 
-    val response = client.get("/v1/portfolio/") {
+    val response = client.get("/v1/portfolio/content") {
       header(HttpHeaders.Origin, "https://example.com")
     }
 
