@@ -13,7 +13,7 @@ Use this map to find architectural responsibility quickly.
 ```text
 sedaia-designs/
 ├── apps/
-│   ├── api/                 Kotlin/Ktor API and App Engine descriptor
+│   ├── api/                 Kotlin/Ktor API
 │   ├── business/            Routed SolidJS business SPA
 │   └── portfolio/           Single-page SolidJS portfolio
 ├── packages/
@@ -22,12 +22,36 @@ sedaia-designs/
 ├── operations/              API runbook and monitoring policy templates
 ├── .github/workflows/       CI, API deploy, and API rollback
 ├── gradle/                  JVM version catalog and wrapper
-├── ObsidianNotes/           Repository notes required by project guidance
+├── ObsidianVault/           Architecture notes, plans, and operational records
 ├── package.json             pnpm orchestration and contract lint command
 ├── pnpm-workspace.yaml      frontend/package membership and version catalogs
 ├── settings.gradle.kts      Gradle repositories and API project inclusion
 ├── build.gradle.kts         shared JVM conventions
-└── Dockerfile               currently unconnected container build path
+└── Dockerfile               Cloud Run API container build
+```
+
+The API follows its Kotlin package namespace beneath `apps/api/src`. Transport models are separated into top-level responses, portfolio-specific responses, and shared serialized types:
+
+```text
+apps/api/src/
+├── main/
+│   ├── kotlin/org/sedaiadesign/api/
+│   │   ├── main.kt
+│   │   ├── Module.kt
+│   │   ├── lib/
+│   │   │   ├── ConfigureServerPlugins.kt
+│   │   │   └── plugins/
+│   │   ├── models/
+│   │   │   ├── response/
+│   │   │   │   ├── PortfolioResponse.kt
+│   │   │   │   └── portfolio/
+│   │   │   └── types/
+│   │   └── routes/
+│   │       └── Api.kt
+│   └── resources/
+│       └── application.yaml
+└── test/kotlin/org/sedaiadesign/api/
+    └── ServerTest.kt
 ```
 
 ## Ownership boundaries
