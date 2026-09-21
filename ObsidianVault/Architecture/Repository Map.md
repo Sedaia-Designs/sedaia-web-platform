@@ -3,7 +3,7 @@ tags:
   - architecture
   - repository
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # Repository map
@@ -47,9 +47,9 @@ sedaia-designs/
 
 | Question | Start with |
 | --- | --- |
-| What does the API expose? | `../../apps/api/src/main/kotlin/routes/Api.kt` |
-| How does Ktor start? | `../../apps/api/src/main/kotlin/Module.kt`, `application.yaml` |
-| Which browser origins are allowed? | `../../apps/api/src/main/kotlin/lib/plugins/CorsPlugin.kt` |
+| What does the API expose? | `../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt` |
+| How does Ktor start? | `../../apps/api/src/main/kotlin/org/sedaiadesign/api/Module.kt`, `apps/api/src/main/resources/application.yaml` |
+| Which browser origins are allowed? | `../../apps/api/src/main/kotlin/org/sedaiadesign/api/lib/plugins/CorsPlugin.kt` |
 | What is the public API contract? | `../../packages/api-client/openapi.yaml` |
 | How is the portfolio composed? | `../../apps/portfolio/src/App.tsx` |
 | How does business routing work? | `../../apps/business/src/router.ts`, `src/routes/` |

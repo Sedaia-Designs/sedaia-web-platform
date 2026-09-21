@@ -1,4 +1,4 @@
-package org.sedaiadesigns.lib.plugins
+package org.sedaiadesign.api.lib.plugins
 
 import dev.hayden.KHealth
 import io.ktor.server.application.Application

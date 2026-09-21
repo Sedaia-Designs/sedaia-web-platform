@@ -1,4 +1,4 @@
-package org.sedaiadesigns
+package org.sedaiadesign.api
 
 import io.ktor.client.request.get
 import io.ktor.client.request.header

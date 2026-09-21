@@ -87,7 +87,7 @@ This is an architectural recommendation, not a description of current automation
 ## Source evidence
 
 - Contract: `../../packages/api-client/openapi.yaml`
-- Kotlin models: `../../apps/api/src/main/kotlin/models/response`
-- Ktor route: `../../apps/api/src/main/kotlin/routes/Api.kt`
+- Kotlin models: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/models/response`
+- Ktor route: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt`
 - Portfolio integration statement: `../../apps/portfolio/README.md`
 - Current hard-coded portfolio content: `../../apps/portfolio/src/components/sections`

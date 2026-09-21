@@ -3,7 +3,7 @@ tags:
   - architecture
   - runtime
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # Runtime topology
@@ -50,7 +50,7 @@ flowchart LR
     plugins --> ready[GET /health/ready]
 ```
 
-`EngineMain` reads `application.yaml`, which points to `org.sedaiadesigns.ModuleKt.module` and binds to `$PORT` with `8080` as the local default. `module()` installs plugins before registering routes.
+`EngineMain` reads `application.yaml`, which points to `org.sedaiadesign.api.ModuleKt.module` and binds to `$PORT` with `8080` as the local default. `module()` installs plugins before registering routes.
 
 ## Network and dependency characteristics
 
@@ -69,7 +69,7 @@ flowchart LR
 
 ## Source evidence
 
-- API startup: `../../apps/api/src/main/kotlin/main.kt`, `apps/api/src/main/kotlin/Module.kt`, `apps/api/src/main/resources/application.yaml`
+- API startup: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/main.kt`, `apps/api/src/main/kotlin/org/sedaiadesign/api/Module.kt`, `apps/api/src/main/resources/application.yaml`
 - Frontend Vite configuration: `../../apps/portfolio/vite.config.ts`, `apps/business/vite.config.ts`
 - Vercel behavior: `../../apps/portfolio/vercel.json`, `apps/business/vercel.json`
 - Browser code: `../../apps/portfolio/src/App.tsx`, `apps/business/src/App.tsx`, `apps/business/src/router.ts`

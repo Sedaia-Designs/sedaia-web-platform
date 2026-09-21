@@ -94,9 +94,9 @@ The tests do not validate the complete portfolio response against OpenAPI, test 
 
 ## Source evidence
 
-- Route entry point: `../../apps/api/src/main/kotlin/routes/Api.kt`
-- Composition root: `../../apps/api/src/main/kotlin/Module.kt`
-- Plugins: `../../apps/api/src/main/kotlin/lib/plugins`
-- Response DTOs: `../../apps/api/src/main/kotlin/models/response`
+- Route entry point: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt`
+- Composition root: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/Module.kt`
+- Plugins: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/lib/plugins`
+- Response DTOs: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/models/response`
 - Build dependencies: `../../apps/api/build.gradle.kts`
-- Tests: `../../apps/api/src/test/kotlin/ServerTest.kt`
+- Tests: `../../apps/api/src/test/kotlin/org/sedaiadesign/api/ServerTest.kt`

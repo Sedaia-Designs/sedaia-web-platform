@@ -1,10 +1,10 @@
-package org.sedaiadesigns
+package org.sedaiadesign.api
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
-import org.sedaiadesigns.lib.configureServerPlugins
-import org.sedaiadesigns.routes.apiRoutes
+import org.sedaiadesign.api.lib.configureServerPlugins
+import org.sedaiadesign.api.routes.apiRoutes
 
 fun Application.module() {
   configureServerPlugins()

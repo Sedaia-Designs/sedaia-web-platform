@@ -6,7 +6,7 @@ aliases:
   - Platform Architecture
   - Architecture Wiki
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # Sedaia web platform architecture
@@ -66,4 +66,4 @@ The dotted browser-to-API edge is an intended integration, not a current runtime
 
 ## Evidence baseline
 
-This wiki was reviewed against the repository on 2026-09-19. Its primary entry point was `../../apps/api/src/main/kotlin/routes/Api.kt`, followed through application startup, frontend composition, OpenAPI, build manifests, GitHub Actions, and operational scripts.
+This wiki was reviewed against the repository on 2026-09-20. Its primary API entry point is `../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt`, followed through application startup, frontend composition, OpenAPI, build manifests, GitHub Actions, and operational scripts.

@@ -1,4 +1,4 @@
-package org.sedaiadesigns.models.response
+package org.sedaiadesign.api.models.response.portfolio
 
 import kotlinx.serialization.Serializable
 
