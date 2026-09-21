@@ -3,6 +3,7 @@ substitutions:
   _ARTIFACT_REPOSITORY: sedaia-repo
   _SERVICE: sedaia-api
   _RUNTIME_SERVICE_ACCOUNT: sedaia-api-runtime@${PROJECT_ID}.iam.gserviceaccount.com
+  _RELEASE_EVIDENCE_BUCKET: sedaia-api-release-evidence-${PROJECT_ID}
 
 steps:
   - id: test-api
@@ -51,6 +52,40 @@ steps:
       - --liveness-probe=httpGet.path=/health/live,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=2,periodSeconds=30,failureThreshold=3
       - --labels=managed-by=cloud-build,build-id=${BUILD_ID}
       - --quiet
+
+  - id: route-latest-revision
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
+    entrypoint: gcloud
+    args:
+      - run
+      - services
+      - update-traffic
+      - ${_SERVICE}
+      - --project=${PROJECT_ID}
+      - --region=${_REGION}
+      - --to-latest
+      - --quiet
+
+  - id: retain-release-evidence
+    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
+    entrypoint: bash
+    env:
+      - GCP_PROJECT_ID=${PROJECT_ID}
+      - CLOUD_RUN_REGION=${_REGION}
+      - CLOUD_RUN_SERVICE=${_SERVICE}
+      - ARTIFACT_REGISTRY_REPOSITORY=${_ARTIFACT_REPOSITORY}
+      - CLOUD_BUILD_ID=${BUILD_ID}
+      - CI_COMMIT_SHA=${COMMIT_SHA}
+      - CI_REPOSITORY=${REPO_FULL_NAME}
+    args:
+      - -ceu
+      - |
+        apt-get update
+        apt-get install --no-install-recommends --yes ca-certificates curl jq
+        export CI_COMMIT_SHA="$${CI_COMMIT_SHA:-unavailable}"
+        export CI_REPOSITORY="$${CI_REPOSITORY:-unavailable}"
+        scripts/create-cloud-build-release-evidence.sh release-evidence
+        gcloud storage cp release-evidence/*.json "gs://${_RELEASE_EVIDENCE_BUCKET}/${BUILD_ID}/"
 
 images:
   - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}

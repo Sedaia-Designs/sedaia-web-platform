@@ -181,12 +181,13 @@ dedicated build identity. Cloud Build tests the API, builds and pushes the
 `BUILD_ID`-tagged image, and deploys the Cloud Run revision. GitHub then resolves
 the image to its `sha256` digest and confirms the new revision is ready, is
 labelled with that build ID, and serves 100% of traffic before checking
-`/health/ready` and `/v1/portfolio/` for HTTP 200, JSON, and the expected CORS
+`/health/ready` and `/v1/portfolio/content` for HTTP 200, JSON, and the expected CORS
 origin.
 
-Successful deployments publish a 30-day machine-readable release manifest
-containing the source commit, Cloud Run revision, immutable image digest,
-traffic state, and verification evidence. API rollback is protected, manual,
+Successful deployments publish machine-readable release evidence containing
+the source commit, Cloud Run revision, immutable image digest, traffic state,
+and verification results to a private Cloud Storage bucket with a 30-day
+retention policy. API rollback is protected, manual,
 and serialized: it accepts a retained known-good deployment run, verifies
 GitHub provenance and confirms the revision still uses the recorded digest,
 routes traffic to that existing revision without rebuilding, and reruns

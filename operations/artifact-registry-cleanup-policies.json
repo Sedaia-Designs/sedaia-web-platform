@@ -1,0 +1,19 @@
+[
+  {
+    "name": "delete-production-images-after-30-days",
+    "action": {"type": "Delete"},
+    "condition": {
+      "tagState": "tagged",
+      "olderThan": "2592000s",
+      "packageNamePrefixes": ["sedaia-api"]
+    }
+  },
+  {
+    "name": "keep-ten-production-images",
+    "action": {"type": "Keep"},
+    "mostRecentVersions": {
+      "keepCount": 10,
+      "packageNamePrefixes": ["sedaia-api"]
+    }
+  }
+]
