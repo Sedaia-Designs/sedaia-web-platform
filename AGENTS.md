@@ -66,3 +66,13 @@ Avoid putting planning information directly into the Readme, always put planning
 - The last step will always be final verification
 - Plans are intended for a Human SWE to follow and operate with, and must be written clearly.
 - When Clarification is asked regarding a Plan, Phase, or Step, always apply the clarifications to the document itself.
+
+## Repository Skills
+
+- Use `.agents/skills/code-style` for SolidJS, TypeScript/TSX, Sass, Vite, or frontend configuration work in either web application.
+- Use `.agents/skills/ui-accessibility` for frontend components, interactions, layouts, and accessibility reviews.
+- Use `.agents/skills/integrate-brand-icons` when adding or normalizing SVG brand marks.
+- Use `.agents/skills/git-commit` for staging, commit-message preparation, or commits.
+- Use `.agents/skills/edit-changelog` for changelog entries and release notes.
+- Use `.agents/skills/cross-repository-release` for releases coordinated with independent Sedaia repositories.
+- Use `.agents/skills/cross-site-content-migration` when adapting public content among applications or Sedaia properties.
