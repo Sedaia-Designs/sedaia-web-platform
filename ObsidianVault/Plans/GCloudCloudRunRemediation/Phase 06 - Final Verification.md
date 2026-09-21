@@ -28,7 +28,7 @@ Prove the remediated production path from reviewed source through safe deploymen
 
 ## Closeout
 
-- [ ] Update [[../GCloudCloudRunSetup/Phase 08 - Final Verification|the original Phase 08]] with the remediation result and evidence links.
+- [ ] Update [[../../Archives/Plans/GCloudCloudRunSetup/Phase 08 - Final Verification|the original Phase 08]] with the remediation result and evidence links.
 - [ ] Mark superseded overlapping plan items accurately without deleting historical evidence.
 - [ ] Record the production owner, verification date, reviewed commit, build ID, revision, digest, policy IDs, rollback drill result, App Engine status, residual risks, and next scheduled access/alert review.
 

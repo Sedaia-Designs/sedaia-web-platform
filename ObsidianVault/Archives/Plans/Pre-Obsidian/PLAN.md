@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Archived pre-Obsidian plan. Remaining work is tracked in
-> `../Plans/MonorepoBuildout/Orchestration.md`; do not execute this note as the
+> `../../../Plans/MonorepoBuildout/Orchestration.md`; do not execute this note as the
 > active checklist.
 
 ## Purpose

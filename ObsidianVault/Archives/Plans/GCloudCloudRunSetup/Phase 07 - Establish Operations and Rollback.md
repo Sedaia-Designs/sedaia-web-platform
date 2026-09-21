@@ -36,7 +36,7 @@ After two known-good Cloud Run releases exist, perform a low-traffic drill:
 
 1. record the current revision and digest;
 2. route traffic to the previous known-good revision;
-3. run `../../../scripts/verify-api-deployment.sh` against the service URL and canonical
+3. run `../../../../scripts/verify-api-deployment.sh` against the service URL and canonical
    hostname;
 4. confirm alerts and logs remain usable;
 5. restore the newer revision; and

@@ -1,11 +1,11 @@
 # GCloud Cloud Run Setup
 
 > [!info] Historical execution record as of 2026-09-20
-> Preserve this plan and its evidence as the Cloud Run setup record. Do not execute its remaining checkboxes independently; [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]] is the authority for every incomplete or weakened gate.
+> Preserve this plan and its evidence as the Cloud Run setup record. Do not execute its remaining checkboxes independently; [[../../../Plans/GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]] is the authority for every incomplete or weakened gate.
 
 ## Objective
 
-Deploy the Ktor API from the repository root `../../../Dockerfile` through Cloud Build,
+Deploy the Ktor API from the repository root `../../../../Dockerfile` through Cloud Build,
 store immutable images in Artifact Registry, and run them as the public Cloud
 Run service behind `api.sedaia-designs.org`.
 

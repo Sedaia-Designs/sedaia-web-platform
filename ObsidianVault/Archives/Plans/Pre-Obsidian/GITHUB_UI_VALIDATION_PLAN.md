@@ -2,7 +2,7 @@
 
 > [!NOTE]
 > Archived pre-Obsidian plan and historical evidence source. Continue work in
-> `../Plans/GitHubActionsMigration/Orchestration.md`.
+> `../GitHubActionsMigration/Orchestration.md`.
 
 ## Goal
 

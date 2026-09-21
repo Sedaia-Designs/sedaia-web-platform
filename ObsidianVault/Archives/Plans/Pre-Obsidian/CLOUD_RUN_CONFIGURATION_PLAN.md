@@ -2,8 +2,8 @@
 
 > [!NOTE]
 > Archived pre-Obsidian plan. Its repository changes are complete. Remaining
-> hosted validation is tracked in `../Plans/GitHubActionsMigration/` and
-> `../Plans/ProductionReadiness/`.
+> hosted validation is tracked in `../GitHubActionsMigration/` and
+> `../ProductionReadiness/`.
 
 ## Goal
 

@@ -15,7 +15,7 @@ This note preserves the full working-session state before logout. It covers the 
 
 ## Google Cloud Run setup plan
 
-The original [[../Plans/GCloudCloudRunSetup/Orchestration|GCloud Cloud Run Setup]] plan is now a historical execution record. Do not independently execute its remaining checkboxes; [[../Plans/GCloudCloudRunRemediation/Orchestration|GCloud Cloud Run Remediation]] is the active authority.
+The original [[../Archives/Plans/GCloudCloudRunSetup/Orchestration|GCloud Cloud Run Setup]] plan is now a historical execution record. Do not independently execute its remaining checkboxes; [[../Plans/GCloudCloudRunRemediation/Orchestration|GCloud Cloud Run Remediation]] is the active authority.
 
 ### Completed setup work
 

@@ -2,11 +2,11 @@
 
 ## Objective
 
-Close the gaps found during the 2026-09-20 audit of [[../GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]], prove that a release is safe before it receives production traffic, establish actionable monitoring and least-privilege access, reconcile stale operational documentation, and retire the App Engine fallback only after every prerequisite is evidenced.
+Close the gaps found during the 2026-09-20 audit of [[../../Archives/Plans/GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]], prove that a release is safe before it receives production traffic, establish actionable monitoring and least-privilege access, reconcile stale operational documentation, and retire the App Engine fallback only after every prerequisite is evidenced.
 
 ## Scope and authority
 
-This plan is the active remedy for incomplete or weak Cloud Run setup items. The original setup plan remains the historical execution record. [[../ProductionReadiness/Orchestration|Production readiness]] and [[../GitHubActionsMigration/Orchestration|GitHub Actions migration]] contain stale App Engine assumptions and must be reconciled in Phase 00; they must not be independently executed as competing deployment plans. This plan does not authorize deleting evidence, force-pushing, weakening branch protection, or retiring App Engine before the Phase 05 gate.
+This plan is the active remedy for incomplete or weak Cloud Run setup items. The original setup plan remains the historical execution record. [[../../Archives/Plans/ProductionReadiness/Orchestration|Production readiness]] and [[../../Archives/Plans/GitHubActionsMigration/Orchestration|GitHub Actions migration]] contain stale App Engine assumptions and must be reconciled in Phase 00; they must not be independently executed as competing deployment plans. This plan does not authorize deleting evidence, force-pushing, weakening branch protection, or retiring App Engine before the Phase 05 gate.
 
 ## Audit findings
 

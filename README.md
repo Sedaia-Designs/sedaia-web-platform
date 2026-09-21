@@ -92,7 +92,7 @@ these environment or repository variables before exercising production:
 - `GCP_SERVICE_ACCOUNT`: the dedicated GitHub Actions deployment service
   account.
 
-The regional Cloud Build trigger `sedaia-api-main` is the sole routine production deployer. A protected `main` push invokes `cloudbuild.yaml` as `sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com`; GitHub Actions has no deployment workflow. The rollback workflow uses the protected `production` environment, Workload Identity Federation, and the `production-api` concurrency group. Historical GitHub migration evidence is retained in [the superseded GitHub Actions migration plan](ObsidianVault/Plans/GitHubActionsMigration/Orchestration.md); current remediation work is in [the Google Cloud Run remediation plan](ObsidianVault/Plans/GCloudCloudRunRemediation/Orchestration.md).
+The regional Cloud Build trigger `sedaia-api-main` is the sole routine production deployer. A protected `main` push invokes `cloudbuild.yaml` as `sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com`; GitHub Actions has no deployment workflow. The rollback workflow uses the protected `production` environment, Workload Identity Federation, and the `production-api` concurrency group. Historical GitHub migration evidence is retained in [the superseded GitHub Actions migration plan](ObsidianVault/Archives/Plans/GitHubActionsMigration/Orchestration.md); current remediation work is in [the Google Cloud Run remediation plan](ObsidianVault/Plans/GCloudCloudRunRemediation/Orchestration.md).
 
 ## Deployment and rollback
 

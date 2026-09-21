@@ -2,8 +2,8 @@
 
 > [!NOTE]
 > Archived pre-Obsidian plan. Remaining work is split between
-> `../Plans/ProductionReadiness/Orchestration.md` and
-> `../Plans/GitHubActionsMigration/Orchestration.md`.
+> `../ProductionReadiness/Orchestration.md` and
+> `../GitHubActionsMigration/Orchestration.md`.
 
 ### 7. Connect the Portfolio to the API
 

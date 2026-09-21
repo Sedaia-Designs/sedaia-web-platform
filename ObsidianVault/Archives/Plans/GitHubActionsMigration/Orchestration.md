@@ -1,7 +1,7 @@
 # GitHub Actions Migration
 
 > [!warning] Superseded on 2026-09-20
-> This plan is retained as historical evidence and must not be executed. Its App Engine and GitHub deployment statements describe an earlier design. The regional Cloud Build trigger is the routine deployer; continue remaining work in [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]].
+> This plan is retained as historical evidence and must not be executed. Its App Engine and GitHub deployment statements describe an earlier design. The regional Cloud Build trigger is the routine deployer; continue remaining work in [[../../../Plans/GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]].
 
 ## Summary
 
@@ -28,11 +28,11 @@ decision. It does not authorize removal of GitLab configuration.
   Federation; no service-account key may be stored.
 - The original detailed checklist and evidence gathered before this vault
   structure was adopted is preserved in
-  `../../Pre-Obsidian/GITHUB_UI_VALIDATION_PLAN.md`.
+  `../Pre-Obsidian/GITHUB_UI_VALIDATION_PLAN.md`.
 
 ## Current status
 
-**Superseded.** Historical GitHub settings, ruleset, OIDC, and App Engine evidence remain in this folder. GitHub Actions retains CI and a protected manual Cloud Run rollback, but it is not a production deployer. The regional `sedaia-api-main` trigger owns routine deployment, and [[../GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]] owns all remaining work. The phase notes in this folder are not executable instructions.
+**Superseded.** Historical GitHub settings, ruleset, OIDC, and App Engine evidence remain in this folder. GitHub Actions retains CI and a protected manual Cloud Run rollback, but it is not a production deployer. The regional `sedaia-api-main` trigger owns routine deployment, and [[../../../Plans/GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]] owns all remaining work. The phase notes in this folder are not executable instructions.
 
 ## Recommended order
 

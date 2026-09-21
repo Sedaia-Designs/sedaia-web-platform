@@ -8,7 +8,7 @@ identity and ensure the upload contains no local output or secrets.
 ## Repository changes
 
 - [x] Add the following beside `dynamicSubstitutions` in
-  `../../../cloudbuild.yaml`:
+  `../../../../cloudbuild.yaml`:
 
   ```yaml
   options:
@@ -105,7 +105,7 @@ git diff --check
 ```
 
 Review every path printed by `list-files-for-upload`. It must not contain
-`.env`, credentials, `.git`, `node_modules`, `../../../.gradle`, or any `build` folder.
+`.env`, credentials, `.git`, `node_modules`, `../../../../.gradle`, or any `build` folder.
 
 ## Exit criterion
 

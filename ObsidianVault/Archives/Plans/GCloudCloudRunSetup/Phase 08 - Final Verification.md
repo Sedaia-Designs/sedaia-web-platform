@@ -12,16 +12,16 @@ Prove the complete production path before retiring App Engine.
 
 - [x] `./gradlew :apps:api:check :apps:api:buildFatJar --no-daemon` passed on 2026-09-20 (`BUILD SUCCESSFUL`; six actionable tasks, one executed and five up to date).
 - [x] `git diff --check` passed on 2026-09-20.
-- [x] `../../../cloudbuild.yaml` uses the intended project-independent substitutions, `CLOUD_LOGGING_ONLY`, startup and liveness probes, zero-to-three instance scaling, CPU `1`, memory `512Mi`, concurrency `40`, timeout `30s`, and the immutable `${BUILD_ID}` tag. Every Phase 03 fixed-string check reported `PASS`.
+- [x] `../../../../cloudbuild.yaml` uses the intended project-independent substitutions, `CLOUD_LOGGING_ONLY`, startup and liveness probes, zero-to-three instance scaling, CPU `1`, memory `512Mi`, concurrency `40`, timeout `30s`, and the immutable `${BUILD_ID}` tag. Every Phase 03 fixed-string check reported `PASS`.
 - [x] `.gcloudignore` upload inventory was reviewed on 2026-09-20. It contains the API source, Gradle wrapper, build configuration, workflows, scripts, and operations files, with no environment files, credentials, keys, `.git`, `.gradle`, dependency directories, frontend packages, Obsidian notes, or build output.
-- [ ] README, deployment automation, rollback automation, manifests, and operations documentation consistently describe Cloud Run. All inspected production implementation references use Cloud Run, but delivery-ownership wording is stale: `../../../README.md` still calls the regional trigger “eventual” and the manual GitHub deployment a blocking production action, while the trigger is already the canonical automatic path; `../../../operations/ROLLBACK_AND_OBSERVABILITY.md` opens by describing GitHub Actions retention even though automatic Cloud Builds now also retain evidence in Cloud Storage.
+- [ ] README, deployment automation, rollback automation, manifests, and operations documentation consistently describe Cloud Run. All inspected production implementation references use Cloud Run, but delivery-ownership wording is stale: `../../../../README.md` still calls the regional trigger “eventual” and the manual GitHub deployment a blocking production action, while the trigger is already the canonical automatic path; `../../../../operations/ROLLBACK_AND_OBSERVABILITY.md` opens by describing GitHub Actions retention even though automatic Cloud Builds now also retain evidence in Cloud Storage.
 
 ## Hosted verification
 
 - [x] Required APIs are enabled in `sedaia-web-platform-api-508804`: Artifact Registry, Cloud Build, IAM, IAM Credentials, Cloud Run, Cloud Logging, and Cloud Monitoring.
 - [x] Build and runtime service accounts are distinct and have the plan-required authorization. The builder has project roles `cloudbuild.builds.editor`, `logging.logWriter`, `run.admin`, and `storage.admin`, repository role `artifactregistry.writer`, and `iam.serviceAccountUser` on only the intended runtime identity.
 - [x] Artifact Registry contains release build `ae95893a-b13c-4a54-9059-87067cc3c580` at recorded digest `sha256:13f83e2eb79fc89f2e7ad2a54d694a3b80bdd57107783fca33b126bac2c51598`.
-- [x] The only enabled deployment trigger is regional `sedaia-api-main`; it targets push branch regex `^main$`, uses `../../../cloudbuild.yaml`, and has no global duplicate.
+- [x] The only enabled deployment trigger is regional `sedaia-api-main`; it targets push branch regex `^main$`, uses `../../../../cloudbuild.yaml`, and has no global duplicate.
 - [x] The trigger's build identity is `sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com`.
 - [x] Cloud Run revision `sedaia-api-00006-xb4` uses `sedaia-api-runtime@sedaia-web-platform-api-508804.iam.gserviceaccount.com`, port `8080`, public `allUsers` invocation, ingress `all`, the intended startup and liveness probes, maximum instances `3` with the default minimum `0`, CPU `1`, memory `512Mi`, concurrency `40`, and timeout `30s`. It is the latest ready revision and receives 100 percent of traffic.
 - [x] The generated service URL `https://sedaia-api-gf5626wkfq-uc.a.run.app` passed readiness and portfolio HTTP 200, JSON, and CORS verification for `https://sakura-sedaia.com` on 2026-09-20.
@@ -38,7 +38,7 @@ Prove the complete production path before retiring App Engine.
 
 ## Required follow-up
 
-- [ ] Create and enable readiness availability, HTTP 5xx, p95 latency, and container startup failure policies from the reviewed templates in `../../../operations/monitoring/`.
+- [ ] Create and enable readiness availability, HTTP 5xx, p95 latency, and container startup failure policies from the reviewed templates in `../../../../operations/monitoring/`.
 - [ ] Attach an owned production notification channel to all four policies and record a received test notification.
 - [ ] Reconcile the README and operations runbook so the automatic regional `main` trigger is named as the routine production deployer and the manual GitHub workflow is explicitly break-glass only, including a control that prevents redeploying the same commit during normal operation.
 - [ ] Rerun this phase from the reviewed repository state after the follow-up changes reach the protected `main` branch.

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Give the build identity only the capabilities required by `../../../cloudbuild.yaml`.
+Give the build identity only the capabilities required by `../../../../cloudbuild.yaml`.
 
 ## Commands
 

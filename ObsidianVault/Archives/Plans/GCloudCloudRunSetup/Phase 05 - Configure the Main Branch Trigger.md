@@ -47,7 +47,7 @@ The `--repository` form is required for the linked second-generation repository.
 
 **Recorded 2026-09-19.** The retained Cloud Console screenshot shows the enabled `GitHub-Sedaia-Web-Platform` connection in `us-central1`, with provider `GitHub`, provider authorization account `SakuraSedaia`, and linked repository `Sedaia-Designs/sedaia-web-platform`. This satisfies the repository-connection prerequisite, but does not by itself prove that the `main` trigger exists or has completed a successful build.
 
-![[Evidence/2026-09-19-cloud-build-github-repository-connection.png]]
+![[2026-09-19-cloud-build-github-repository-connection.png]]
 
 Evidence SHA-256: `485842858b0bcc42038a58043bd02d9ad8434240e816013d364c28d978d0a4ab`
 
@@ -75,7 +75,7 @@ The replacement trigger `sedaia-api-main` was created with ID `911d239d-69d9-4e1
 
 **Recorded 2026-09-20.** The retained GitHub screenshot shows the `Protect main` ruleset is active, has an empty bypass list, and targets the default branch resolved to `main`. It visibly enables **Restrict deletions**, **Require linear history**, **Require a pull request before merging**, **Require status checks to pass**, and **Block force pushes**.
 
-![[Evidence/2026-09-20-github-main-ruleset.png]]
+![[2026-09-20-github-main-ruleset.png]]
 
 Evidence SHA-256: `cb925ec95051ff32f353b04d5581c9345b72478486b6b75b11baf0825edc6ee9`
 
@@ -83,7 +83,7 @@ This screenshot verifies that the core pull-request and status-check protections
 
 **Expanded settings recorded 2026-09-20.** The retained screenshot confirms **Required approvals** is `0`, **Dismiss stale pull request approvals when new commits are pushed** is enabled, **Require approval of the most recent reviewable push** is enabled, **Require conversation resolution before merging** is enabled, and squash is the only allowed merge method. GitHub defines approval of the most recent reviewable push as requiring at least one other authorized reviewer to approve the latest changes, so the review safeguard is satisfied despite the general approval count being zero. The screenshot also confirms that `Ktor API`, `Frontends`, and `API contract` are required status checks.
 
-![[Evidence/2026-09-20-github-main-ruleset-expanded.png]]
+![[2026-09-20-github-main-ruleset-expanded.png]]
 
 Evidence SHA-256: `3511c5f21ef1525a9893d6ba9fb957553c9514ee0583b40eb404a3e3c17e650f`
 
@@ -91,7 +91,7 @@ Evidence SHA-256: `3511c5f21ef1525a9893d6ba9fb957553c9514ee0583b40eb404a3e3c17e6
 
 **Required-check source options recorded 2026-09-20.** The retained selector screenshot confirms GitHub does not offer **GitHub Actions** as an expected source in this ruleset. The available app-specific choices are unrelated producers, including Copilot, GitHub Merge Queue, Google Cloud Build, and Google Cloud Developer Connect. Keep `Ktor API`, `Frontends`, and `API contract` set to **Any source**; selecting one of those apps would incorrectly require that app to emit the GitHub Actions job check and could leave pull requests permanently blocked.
 
-![[Evidence/2026-09-20-github-required-check-source-options.png]]
+![[2026-09-20-github-required-check-source-options.png]]
 
 Evidence SHA-256: `59bc00a21239677934ec2981e4db535e44cded754e10efe5841cc5588b190ab0`
 
@@ -170,7 +170,7 @@ Require one row with status `SUCCESS` and trigger name `sedaia-api-main`. Record
 
 **Verified 2026-09-20.** Pull request #1 merged `dev` into `main` as commit `87c6411d982d766bd251fe2a8def7c91a9180a77`. Exactly one regional build matched that commit: build `ab3fbd1d-b7dc-4621-aec0-af7a95d45ace`, created by trigger `sedaia-api-main`, completed with status `SUCCESS` from 14:51:19 UTC through 14:58:26 UTC. The `test-api`, `build-image`, `push-image`, and `deploy-cloud-run` steps all succeeded.
 
-![[Evidence/2026-09-20-first-automatic-cloud-build.png]]
+![[2026-09-20-first-automatic-cloud-build.png]]
 
 Evidence SHA-256: `3c7fdf37fdbc81d3ede30a1b00b94f5a1ea455d67a8f70e65db9e96507147356`
 
