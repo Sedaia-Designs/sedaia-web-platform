@@ -38,6 +38,7 @@ out/
 hs_err_pid*
 replay_pid*
 local.properties
+.kotlin/sessions
 
 # Vercel and framework-generated output
 .vercel/
