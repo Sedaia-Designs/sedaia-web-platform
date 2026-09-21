@@ -13,6 +13,8 @@ reference and are not active execution plans.
 - [[MonorepoBuildout/Orchestration|Monorepo buildout]]
 - [[ProductionReadiness/Orchestration|Production readiness]]
 - [[GitHubActionsMigration/Orchestration|GitHub Actions migration]]
+- [[GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]]
+- [[GCloudCloudRunRemediation/Orchestration|Google Cloud Run remediation]]
 
 ## Pre-Obsidian audit
 
