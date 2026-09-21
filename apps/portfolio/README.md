@@ -40,3 +40,10 @@ The repository includes `vercel.json` configured for Vercel's static deployment
 workflow. Import the repository into Vercel without changing the detected root
 directory; Vercel will install dependencies with the checked-in lockfile, run
 `pnpm build`, and publish `dist/client`.
+
+Automatic Git deployments are disabled for every branch through
+`git.deploymentEnabled: false`. Keep this safeguard in place until the Portfolio
+API route, production origin, response contract, and end-to-end behavior have
+been reviewed and confirmed. Deploy the Portfolio manually only after that gate
+is explicitly accepted. CI rejects changes that remove or weaken the checked-in
+automatic-deployment block.
