@@ -90,7 +90,7 @@ portfolio_status="$(
     --write-out '%{http_code}' \
     --connect-timeout 3 \
     --max-time 10 \
-    "${base_url}/v1/portfolio/"
+    "${base_url}/v1/portfolio/content"
 )"
 
 if [ "${portfolio_status}" != "200" ]; then
@@ -134,7 +134,7 @@ if [ -n "${result_file}" ]; then
   jq --null-input \
     --arg checked_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
     --arg readiness_url "${base_url}/health/ready" \
-    --arg portfolio_url "${base_url}/v1/portfolio/" \
+    --arg portfolio_url "${base_url}/v1/portfolio/content" \
     --arg portfolio_origin "${portfolio_origin}" \
     '{
       checked_at: $checked_at,

@@ -16,7 +16,7 @@ The public contract is an OpenAPI 3.0.3 document at `../../packages/api-client/o
 The contract declares one unauthenticated operation:
 
 ```text
-GET /v1/portfolio
+GET /v1/portfolio/content
 operationId: getPortfolio
 200: Portfolio JSON
 500: unexpected server error
@@ -55,7 +55,7 @@ sequenceDiagram
     participant D as Future persistence
 
     P->>C: request portfolio data
-    C->>A: GET /v1/portfolio
+    C->>A: GET /v1/portfolio/content
     A->>D: load portfolio and projects
     D-->>A: domain data
     A-->>C: Portfolio JSON
@@ -66,7 +66,7 @@ Only the Ktor endpoint and CORS portion are implemented. The client, frontend st
 
 ## Contract risks and checks
 
-- OpenAPI uses `/v1/portfolio`; the Ktor route and all smoke tests use `/v1/portfolio/`. Canonical trailing-slash behavior should be resolved before client generation.
+- The OpenAPI contract, Ktor route, tests, and deployment smoke checks use `/v1/portfolio/content` as the canonical portfolio-content endpoint.
 - CI lints OpenAPI syntax/style but does not compare the document to Kotlin routes or validate live responses against its schemas.
 - The API test asserts only that the serialized body contains the owner. It does not check every required field or project serialization.
 - The contract declares HTTP 500 but the application has no configured StatusPages mapping for a stable error schema.

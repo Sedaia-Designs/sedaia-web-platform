@@ -13,7 +13,7 @@ fun Route.apiRoutes() {
     call.respondText("Hello Ktor!")
   }
   route("/portfolio") {
-    get("/") {
+    get("/content") {
       call.respond(
         PortfolioResponse(
           owner = "Sakura Sedaia",

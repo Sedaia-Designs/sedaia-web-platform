@@ -47,7 +47,7 @@ class ServerTest {
   fun `portfolio endpoint responds with json`() = testApplication {
     configure()
 
-    val response = client.get("/v1/portfolio/")
+    val response = client.get("/v1/portfolio/content")
 
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())

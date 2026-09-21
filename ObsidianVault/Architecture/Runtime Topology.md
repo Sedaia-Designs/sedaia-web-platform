@@ -31,7 +31,7 @@ sequenceDiagram
     VE-->>V: prerendered HTML + static assets
     V->>JS: client interactions/navigation
     Note over JS,API: No application fetch is currently wired
-    JS--xAPI: Future GET /v1/portfolio/
+    JS--xAPI: Future GET /v1/portfolio/content
 ```
 
 The portfolio has no router. It composes one page from section components and uses fine-grained signals for the collage state and image modal. The business site has client-side file-system routes and a catch-all rewrite to `index.html`.
@@ -45,7 +45,7 @@ flowchart LR
     module --> plugins[CORS + JSON + health]
     module --> routing[/v1 route tree]
     routing --> root[GET /v1/]
-    routing --> portfolio[GET /v1/portfolio/]
+    routing --> portfolio[GET /v1/portfolio/content]
     plugins --> live[GET /health/live]
     plugins --> ready[GET /health/ready]
 ```

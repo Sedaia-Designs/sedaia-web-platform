@@ -41,9 +41,9 @@ Responsibilities are deliberately shallow:
 | `GET /health/live` | KHealth plugin | `{}` JSON, HTTP 200 | Process liveness |
 | `GET /health/ready` | KHealth plugin | `{}` JSON, HTTP 200 | Readiness with no downstream checks |
 | `GET /v1/` | `apiRoutes()` | `Hello Ktor!` text | Version-root smoke endpoint |
-| `GET /v1/portfolio/` | `apiRoutes()` | `PortfolioResponse` JSON | Hard-coded owner/headline and empty projects |
+| `GET /v1/portfolio/content` | `apiRoutes()` | `PortfolioResponse` JSON | Empty programming collection pending persistence |
 
-The implementation registers trailing-slash forms. Tests use those exact paths, while OpenAPI declares `/v1/portfolio` without a trailing slash. Clients should follow the contract path only after redirect/canonical-path behavior is deliberately verified.
+The implementation, tests, OpenAPI contract, and deployment smoke checks use `/v1/portfolio/content` as the canonical content-delivery path.
 
 ## Serialization model
 
