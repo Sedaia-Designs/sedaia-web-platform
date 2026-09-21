@@ -4,6 +4,8 @@ substitutions:
   _SERVICE: sedaia-api
   _RUNTIME_SERVICE_ACCOUNT: sedaia-api-runtime@${PROJECT_ID}.iam.gserviceaccount.com
   _RELEASE_EVIDENCE_BUCKET: sedaia-api-release-evidence-${PROJECT_ID}
+  _DEPLOYMENT_LOCK_BUCKET: sedaia-api-deployment-lock-${PROJECT_ID}
+  _CANONICAL_API_URL: https://api.sedaia-designs.org
 
 steps:
   - id: test-api
@@ -27,65 +29,27 @@ steps:
       - push
       - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
 
-  - id: deploy-cloud-run
-    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
-    entrypoint: gcloud
-    args:
-      - run
-      - deploy
-      - ${_SERVICE}
-      - --image=${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}
-      - --project=${PROJECT_ID}
-      - --region=${_REGION}
-      - --platform=managed
-      - --service-account=${_RUNTIME_SERVICE_ACCOUNT}
-      - --allow-unauthenticated
-      - --ingress=all
-      - --port=8080
-      - --min-instances=0
-      - --max-instances=3
-      - --memory=512Mi
-      - --cpu=1
-      - --concurrency=40
-      - --timeout=30s
-      - --startup-probe=httpGet.path=/health/ready,httpGet.port=8080,initialDelaySeconds=0,timeoutSeconds=2,periodSeconds=5,failureThreshold=12
-      - --liveness-probe=httpGet.path=/health/live,httpGet.port=8080,initialDelaySeconds=10,timeoutSeconds=2,periodSeconds=30,failureThreshold=3
-      - --labels=managed-by=cloud-build,build-id=${BUILD_ID}
-      - --quiet
-
-  - id: route-latest-revision
-    name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
-    entrypoint: gcloud
-    args:
-      - run
-      - services
-      - update-traffic
-      - ${_SERVICE}
-      - --project=${PROJECT_ID}
-      - --region=${_REGION}
-      - --to-latest
-      - --quiet
-
-  - id: retain-release-evidence
+  - id: deploy-cloud-run-safely
     name: gcr.io/google.com/cloudsdktool/google-cloud-cli:stable
     entrypoint: bash
     env:
       - GCP_PROJECT_ID=${PROJECT_ID}
       - CLOUD_RUN_REGION=${_REGION}
       - CLOUD_RUN_SERVICE=${_SERVICE}
+      - RUNTIME_SERVICE_ACCOUNT=${_RUNTIME_SERVICE_ACCOUNT}
       - ARTIFACT_REGISTRY_REPOSITORY=${_ARTIFACT_REPOSITORY}
       - CLOUD_BUILD_ID=${BUILD_ID}
       - CI_COMMIT_SHA=${COMMIT_SHA}
       - CI_REPOSITORY=${REPO_FULL_NAME}
+      - RELEASE_EVIDENCE_BUCKET=${_RELEASE_EVIDENCE_BUCKET}
+      - DEPLOYMENT_LOCK_BUCKET=${_DEPLOYMENT_LOCK_BUCKET}
+      - CANONICAL_API_URL=${_CANONICAL_API_URL}
     args:
       - -ceu
       - |
         apt-get update
         apt-get install --no-install-recommends --yes ca-certificates curl jq
-        export CI_COMMIT_SHA="$${CI_COMMIT_SHA:-unavailable}"
-        export CI_REPOSITORY="$${CI_REPOSITORY:-unavailable}"
-        scripts/create-cloud-build-release-evidence.sh release-evidence
-        gcloud storage cp release-evidence/*.json "gs://${_RELEASE_EVIDENCE_BUCKET}/${BUILD_ID}/"
+        scripts/deploy-cloud-run-safe.sh release-evidence
 
 images:
   - ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_SERVICE}:${BUILD_ID}

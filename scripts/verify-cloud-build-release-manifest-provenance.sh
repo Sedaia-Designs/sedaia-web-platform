@@ -47,18 +47,23 @@ jq -e \
   --arg region "${CLOUD_RUN_REGION}" \
   --arg service "${CLOUD_RUN_SERVICE}" '
   .cloud_run.revision as $revision |
-  .schema_version == 1 and .status == "known-good" and
+  .schema_version == 2 and .status == "known-good" and
   .source.repository == $repository and .source.commit_sha == $commit and
   .cloud_build.build_id == $build_id and
   .cloud_run.project == $project and .cloud_run.region == $region and .cloud_run.service == $service and
   (.cloud_run.revision | type == "string" and test("^[a-z0-9][a-z0-9-]{0,62}$")) and
-  (.cloud_run.service_url | type == "string" and startswith("https://")) and
+  (.cloud_run.candidate_url | type == "string" and startswith("https://")) and
+  (.cloud_run.canonical_url | type == "string" and startswith("https://")) and
   (.image.repository | type == "string" and startswith($region + "-docker.pkg.dev/" + $project + "/")) and
   (.image.digest | type == "string" and test("^sha256:[a-f0-9]{64}$")) and
   .image.uri == (.image.repository + "@" + .image.digest) and
-  .verification.readiness.passed == true and .verification.readiness.http_status == 200 and
-  .verification.portfolio_json.passed == true and .verification.portfolio_json.http_status == 200 and
-  .verification.portfolio_cors.passed == true and
+  .verification.candidate.readiness.passed == true and
+  .verification.candidate.api_metadata.passed == true and
+  .verification.candidate.portfolio_contract.passed == true and
+  .verification.candidate.portfolio_cors.passed == true and
+  .verification.generated_service_url.portfolio_contract.passed == true and
+  .verification.canonical_url.portfolio_contract.passed == true and
+  .outcome.promoted == true and .outcome.temporary_tag_removed == true and
   ([.final_traffic[] | select(.revisionName == $revision) | .percent] | add) == 100
 ' "${supplied_manifest}" >/dev/null
 

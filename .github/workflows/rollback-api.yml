@@ -23,6 +23,8 @@ env:
   GCP_PROJECT_ID: sedaia-web-platform-api-508804
   CLOUD_RUN_REGION: us-central1
   CLOUD_RUN_SERVICE: sedaia-api
+  RELEASE_EVIDENCE_BUCKET: sedaia-api-release-evidence-sedaia-web-platform-api-508804
+  DEPLOYMENT_LOCK_BUCKET: sedaia-api-deployment-lock-sedaia-web-platform-api-508804
 
 jobs:
   rollback:

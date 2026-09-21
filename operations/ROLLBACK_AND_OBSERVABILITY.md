@@ -12,6 +12,7 @@ An operator with appropriate Logging and Monitoring access must configure and
 verify:
 
 - a repository-and-`main`-bound GitHub OIDC provider and dedicated rollback service account with Cloud Build read, Cloud Run developer, and release-evidence object-read access;
+- a separate `sedaia-api-deployment-lock-sedaia-web-platform-api-508804` bucket with uniform access, public-access prevention, and no retention policy; both the Cloud Build and rollback identities need object create, read, and delete access for `production-api.lock`;
 - `GCP_WORKLOAD_IDENTITY_PROVIDER` and `GCP_SERVICE_ACCOUNT` variables in the protected GitHub `production` environment;
 - an HTTPS uptime check for the Cloud Run service URL's `/health/ready` path;
 - enabled alerts for readiness, application 5xx responses, p95 latency, and
@@ -39,11 +40,11 @@ The container-startup policy depends on the counter logs-based metric `cloud_run
 | p95 latency policy enabled                                                    | Pending operator setup                               |
 | Container-startup policy enabled                                              | Pending operator setup                               |
 
-Automatic Cloud Builds upload `release.json`, revision state, service state, final traffic, and verification output beneath `gs://sedaia-api-release-evidence-sedaia-web-platform-api-508804/BUILD_ID/`. The bucket enforces public-access prevention, uniform bucket-level access, and a 30-day retention period. The dedicated build service account has object-creator access only.
+Automatic Cloud Builds upload schema-v2 `release.json`, pre-deploy and final service state, candidate revision state, tagged-candidate verification, promotion verification, canonical verification, and recovery output beneath `gs://sedaia-api-release-evidence-sedaia-web-platform-api-508804/BUILD_ID/`. The bucket enforces public-access prevention, uniform bucket-level access, and a 30-day retention period. The dedicated build service account has object-creator access. The separate lock bucket must not inherit the evidence retention policy because routine deployments and rollbacks remove their lock after completion.
 
 ## Deploy and roll back
 
-Each successful regional `sedaia-api-main` build publishes a release manifest only after the exact repository, `main` commit, project, region, service, immutable revision and image digest, traffic, readiness, portfolio JSON, and CORS checks pass. The trigger is the sole routine deployer and runs `cloudbuild.yaml` as the dedicated builder service account. There is no manual GitHub deployment path.
+Each regional `sedaia-api-main` build acquires the same production lock used by rollback, captures current traffic and endpoint health, creates a tagged candidate at zero traffic, validates the exact revision and API contract, and promotes only its immutable revision name. A successful build publishes a known-good manifest only after generated and canonical endpoint checks pass; a failed post-promotion check restores and verifies the captured traffic allocation. The trigger is the sole routine deployer and runs `cloudbuild.yaml` as the dedicated builder service account. There is no manual GitHub deployment path.
 
 To restore a release, manually run `Roll back API` from `main` with a successful `sedaia-api-main` Cloud Build ID, an incident or drill reason, and the exact confirmation `rollback-production`. The workflow downloads `release.json` from that build's retained Cloud Storage prefix, verifies the build succeeded from the regional trigger on `main`, and confirms that its Cloud Run revision still exists with the recorded image digest before changing traffic.
 It assigns all service traffic to that existing revision, reruns smoke tests,
@@ -73,7 +74,7 @@ ID. Do not manufacture an outage.
 | Restore result                     | 100 percent traffic restored to `sedaia-api-00003-jwp`; generated and canonical endpoint verification passed                                                         |
 | Runbook corrections                | Record automatic Cloud Build IDs and immutable digests when no GitHub deployment artifact exists; do not claim alert validation until hosted policies are configured |
 
-After any rollback to a named revision, the next deployment must explicitly restore latest-revision routing. `cloudbuild.yaml` does this in `route-latest-revision` before post-deploy verification; omitting this step can create a healthy revision without assigning it production traffic.
+After any rollback, the next deployment leaves that revision serving while it validates a new tagged candidate at zero traffic. It then promotes the candidate by immutable revision name; the production path never uses `LATEST` or `--to-latest`.
 
 The Cloud Run configuration caps the service at three instances. Revisit that
 capacity and cost limit using production traffic evidence before raising it.

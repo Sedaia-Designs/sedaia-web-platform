@@ -100,9 +100,12 @@ The regional Cloud Build trigger `sedaia-api-main` is the sole routine productio
 
 The root `cloudbuild.yaml` is the canonical container build configuration. It
 tests the API, builds the root `Dockerfile`, pushes a unique build-ID tag to
-Artifact Registry, and deploys it to Cloud Run with explicit runtime, scaling,
-resource, and health-check settings. Cloud Run resolves that image to a digest
-when it creates the revision; release and rollback evidence identifies both.
+Artifact Registry, and deploys a tagged Cloud Run candidate with zero production
+traffic. The pipeline verifies that exact revision before promoting its immutable
+name, verifies the generated and canonical URLs afterward, and restores the
+captured prior traffic allocation if either post-promotion check fails. Cloud Run
+resolves the image to a digest when it creates the revision; release and rollback
+evidence identifies both.
 
 The defaults target project `sedaia-web-platform-api-508804`, region
 `us-central1`, Artifact Registry repository `sedaia-repo`, Cloud Run service
@@ -113,13 +116,23 @@ The Cloud Build service account needs permission to write to the Artifact
 Registry repository, deploy and inspect the Cloud Run service, and act as the
 runtime service account.
 
-Submit the same build configuration used by a trigger with:
+Deployment and rollback share an atomic object lock in the dedicated
+`sedaia-api-deployment-lock-PROJECT_ID` bucket. Keep this bucket separate from
+the retained evidence bucket: a retention policy would prevent normal lock
+release. Configure uniform bucket-level access and public-access prevention,
+but no object retention policy. If an interrupted operation leaves
+`production-api.lock`, verify that its recorded owner is no longer running
+before an operator removes it.
+
+Only an authorized break-glass operator should submit the build manually. The
+mandatory provenance substitutions must identify the exact reviewed source:
 
 ```sh
 gcloud builds submit . \
   --config=cloudbuild.yaml \
   --project=sedaia-web-platform-api-508804 \
-  --region=us-central1
+  --region=us-central1 \
+  --substitutions=COMMIT_SHA=FULL_40_CHARACTER_SHA,REPO_FULL_NAME=Sedaia-Designs/sedaia-web-platform
 ```
 
 For a different target, override user substitutions rather than editing the
@@ -130,7 +143,7 @@ gcloud builds submit . \
   --config=cloudbuild.yaml \
   --project=PROJECT_ID \
   --region=REGION \
-  --substitutions=_REGION=REGION,_ARTIFACT_REPOSITORY=REPOSITORY,_SERVICE=SERVICE,_RUNTIME_SERVICE_ACCOUNT=SERVICE_ACCOUNT
+  --substitutions=COMMIT_SHA=FULL_40_CHARACTER_SHA,REPO_FULL_NAME=OWNER/REPOSITORY,_REGION=REGION,_ARTIFACT_REPOSITORY=REPOSITORY,_SERVICE=SERVICE,_RUNTIME_SERVICE_ACCOUNT=SERVICE_ACCOUNT,_RELEASE_EVIDENCE_BUCKET=EVIDENCE_BUCKET,_DEPLOYMENT_LOCK_BUCKET=LOCK_BUCKET,_CANONICAL_API_URL=CANONICAL_URL
 ```
 
 After the build succeeds, retrieve the generated service URL and verify it:
@@ -163,7 +176,7 @@ The Portfolio production environment must define `VITE_API_BASE_URL` as
 future asynchronous client helper; the current static portfolio has no runtime
 dependency on the API.
 
-Every reviewed update to `main` is submitted automatically by the regional `sedaia-api-main` trigger. Cloud Build tests the API, builds and pushes the `BUILD_ID`-tagged image, and deploys the Cloud Run revision through the dedicated builder identity. The release evidence step resolves the immutable `sha256` digest and records revision, traffic, `/health/ready`, portfolio JSON, and CORS results.
+Every reviewed update to `main` is submitted automatically by the regional `sedaia-api-main` trigger. Cloud Build tests the API, builds and pushes the `BUILD_ID`-tagged image, and deploys the Cloud Run revision through the dedicated builder identity. Release schema v2 records pre-deploy state, candidate revision and immutable digest, tagged-candidate verification, named promotion, generated and canonical URL checks, recovery, tag cleanup, and final traffic. Failed builds upload the evidence gathered before the failure whenever Cloud Storage remains reachable.
 
 Successful deployments publish machine-readable release evidence containing
 the source commit, Cloud Run revision, immutable image digest, traffic state,
