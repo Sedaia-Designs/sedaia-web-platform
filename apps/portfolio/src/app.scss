@@ -39,8 +39,8 @@ span {
   letter-spacing: 0.02rem;
 }
 
-a,
-a:visited {
+.link,
+.link:visited {
   margin-top: 1rem;
   color: var(--color-link);
   font-weight: 600;
@@ -50,12 +50,12 @@ a:visited {
   transition: 150ms ease;
 }
 
-a:hover {
+.link:hover {
   color: var(--color-link-hover);
   box-shadow: 0 -2px inset var(--color-link-hover);
 }
 
-a:focus-visible {
+.link:focus-visible {
   border-radius: 0.2rem;
   outline: 3px solid var(--color-focus);
   outline-offset: 4px;

@@ -1,6 +1,7 @@
 import type { JSX } from '@solidjs/web';
 import { createSignal, Show } from 'solid-js';
 import ImageModal from '~/components/media/image-modal';
+import { Href } from '~/components/routing/Href.tsx';
 
 export interface RenderInfoProps {
   title: string;
@@ -26,12 +27,12 @@ export default function RenderCard(props: RenderCardProps) {
       <h3>{data().title}</h3>
       <div class="router left">
         <div class="project-link">
-          <a href="https://www.sedaia-designs.org">Art Portfolio</a>
+          <Href href="https://www.sedaia-designs.org">Art Portfolio</Href>
         </div>
         <div class="project-link">
-          <a href="https://gitlab.com/sedaia-designs/advanced-character-rig">
+          <Href href="https://gitlab.com/sedaia-designs/advanced-character-rig">
             SACR Project
-          </a>
+          </Href>
         </div>
       </div>
       <figure class="render-card">
