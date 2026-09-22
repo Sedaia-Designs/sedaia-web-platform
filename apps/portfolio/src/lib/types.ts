@@ -31,7 +31,7 @@ export type ProgrammingResponse = {
   description: string;
   projectPage: string;
   sourceCode: string;
-  documentation?: string | null;
+  documentation?: string;
 };
 
 export type PortfolioContent = {
