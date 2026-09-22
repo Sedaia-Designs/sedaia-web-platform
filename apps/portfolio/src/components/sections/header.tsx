@@ -8,7 +8,7 @@ export default function Header() {
         class="about-image"
       />
       <h1>Sakura Sedaia</h1>
-      <p class="subtitle">Novice Web Engineer and 3D Artist</p>
+      <p class="subtitle">Novice Web Engineer and Minecraft 3D Artist</p>
     </header>
   );
 }
