@@ -4,7 +4,7 @@ tags:
   - operations
   - quality-attributes
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # Operations and quality attributes
@@ -76,8 +76,8 @@ Risks include prerelease SolidJS dependencies, no generated client, no contract-
 
 ## Source evidence
 
-- Health and CORS: `../../apps/api/src/main/kotlin/lib/plugins`
-- Test coverage: `../../apps/api/src/test/kotlin/ServerTest.kt`, `apps/business/src/components/Counter.test.tsx`
+- Health and CORS: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/lib/plugins`
+- Test coverage: `../../apps/api/src/test/kotlin/org/sedaiadesign/api/ServerTest.kt`, `apps/business/src/components/Counter.test.tsx`
 - Smoke verification: `../../scripts/verify-api-deployment.sh`
 - Monitoring: `../../operations/monitoring`
 - Operational status: `../../operations/ROLLBACK_AND_OBSERVABILITY.md`

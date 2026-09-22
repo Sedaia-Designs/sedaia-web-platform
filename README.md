@@ -77,11 +77,9 @@ GitHub Actions workflows in `.github/workflows` provide:
 
 - pull-request and `main` validation for the API, frontends, and OpenAPI
   contract;
-- a manually dispatched production API deployment that accepts only `main`,
-  requires explicit confirmation, deploys an immutable image digest to Cloud
-  Run, and publishes a 30-day known-good release manifest; and
-- a manually dispatched rollback that retrieves a manifest from a successful
-  Deploy API workflow run and verifies its provenance before changing traffic.
+- a manually dispatched rollback that retrieves a successful routine build's
+  retained Cloud Storage manifest and verifies its provenance before changing
+  traffic.
 
 The GitHub `production` environment must use the strongest approval control
 available for the repository visibility and GitHub plan. GitHub documents that
@@ -94,16 +92,7 @@ these environment or repository variables before exercising production:
 - `GCP_SERVICE_ACCOUNT`: the dedicated GitHub Actions deployment service
   account.
 
-Both production workflows share the `production-api` concurrency group and use
-the protected `production` environment. Cloud Build is the sole production
-deployment owner: the protected GitHub workflow submits `cloudbuild.yaml`, and
-the eventual regional `main` trigger runs that same configuration. GitHub does
-not maintain a separate container build or `gcloud run deploy` implementation.
-Retire any remaining legacy CI/CD deployment integration after GitHub
-validation passes on pull requests and `main`, OIDC authentication succeeds,
-and controlled Cloud Build deployment and rollback runs complete.
-The complete manual configuration and evidence checklist is in
-[the GitHub Actions migration plan](ObsidianVault/Plans/GitHubActionsMigration/Orchestration.md).
+The regional Cloud Build trigger `sedaia-api-main` is the sole routine production deployer. A protected `main` push invokes `cloudbuild.yaml` as `sedaia-api-builder@sedaia-web-platform-api-508804.iam.gserviceaccount.com`; GitHub Actions has no deployment workflow. The rollback workflow uses the protected `production` environment, Workload Identity Federation, and the `production-api` concurrency group. Historical GitHub migration evidence is retained in [the superseded GitHub Actions migration plan](ObsidianVault/Archives/Plans/GitHubActionsMigration/Orchestration.md); current remediation work is in [the Google Cloud Run remediation plan](ObsidianVault/Plans/GCloudCloudRunRemediation/Orchestration.md).
 
 ## Deployment and rollback
 
@@ -111,9 +100,12 @@ The complete manual configuration and evidence checklist is in
 
 The root `cloudbuild.yaml` is the canonical container build configuration. It
 tests the API, builds the root `Dockerfile`, pushes a unique build-ID tag to
-Artifact Registry, and deploys it to Cloud Run with explicit runtime, scaling,
-resource, and health-check settings. Cloud Run resolves that image to a digest
-when it creates the revision; release and rollback evidence identifies both.
+Artifact Registry, and deploys a tagged Cloud Run candidate with zero production
+traffic. The pipeline verifies that exact revision before promoting its immutable
+name, verifies the generated and canonical URLs afterward, and restores the
+captured prior traffic allocation if either post-promotion check fails. Cloud Run
+resolves the image to a digest when it creates the revision; release and rollback
+evidence identifies both.
 
 The defaults target project `sedaia-web-platform-api-508804`, region
 `us-central1`, Artifact Registry repository `sedaia-repo`, Cloud Run service
@@ -124,13 +116,23 @@ The Cloud Build service account needs permission to write to the Artifact
 Registry repository, deploy and inspect the Cloud Run service, and act as the
 runtime service account.
 
-Submit the same build configuration used by a trigger with:
+Deployment and rollback share an atomic object lock in the dedicated
+`sedaia-api-deployment-lock-PROJECT_ID` bucket. Keep this bucket separate from
+the retained evidence bucket: a retention policy would prevent normal lock
+release. Configure uniform bucket-level access and public-access prevention,
+but no object retention policy. If an interrupted operation leaves
+`production-api.lock`, verify that its recorded owner is no longer running
+before an operator removes it.
+
+Only an authorized break-glass operator should submit the build manually. The
+mandatory provenance substitutions must identify the exact reviewed source:
 
 ```sh
 gcloud builds submit . \
   --config=cloudbuild.yaml \
   --project=sedaia-web-platform-api-508804 \
-  --region=us-central1
+  --region=us-central1 \
+  --substitutions=COMMIT_SHA=FULL_40_CHARACTER_SHA,REPO_FULL_NAME=Sedaia-Designs/sedaia-web-platform
 ```
 
 For a different target, override user substitutions rather than editing the
@@ -141,7 +143,7 @@ gcloud builds submit . \
   --config=cloudbuild.yaml \
   --project=PROJECT_ID \
   --region=REGION \
-  --substitutions=_REGION=REGION,_ARTIFACT_REPOSITORY=REPOSITORY,_SERVICE=SERVICE,_RUNTIME_SERVICE_ACCOUNT=SERVICE_ACCOUNT
+  --substitutions=COMMIT_SHA=FULL_40_CHARACTER_SHA,REPO_FULL_NAME=OWNER/REPOSITORY,_REGION=REGION,_ARTIFACT_REPOSITORY=REPOSITORY,_SERVICE=SERVICE,_RUNTIME_SERVICE_ACCOUNT=SERVICE_ACCOUNT,_RELEASE_EVIDENCE_BUCKET=EVIDENCE_BUCKET,_DEPLOYMENT_LOCK_BUCKET=LOCK_BUCKET,_CANONICAL_API_URL=CANONICAL_URL
 ```
 
 After the build succeeds, retrieve the generated service URL and verify it:
@@ -174,21 +176,14 @@ The Portfolio production environment must define `VITE_API_BASE_URL` as
 future asynchronous client helper; the current static portfolio has no runtime
 dependency on the API.
 
-The GitHub API deployment is a blocking manual action on `main`. It serializes
-production releases, authenticates with Workload Identity Federation, and
-submits the repository root to Cloud Build using `cloudbuild.yaml` and the
-dedicated build identity. Cloud Build tests the API, builds and pushes the
-`BUILD_ID`-tagged image, and deploys the Cloud Run revision. GitHub then resolves
-the image to its `sha256` digest and confirms the new revision is ready, is
-labelled with that build ID, and serves 100% of traffic before checking
-`/health/ready` and `/v1/portfolio/` for HTTP 200, JSON, and the expected CORS
-origin.
+Every reviewed update to `main` is submitted automatically by the regional `sedaia-api-main` trigger. Cloud Build tests the API, builds and pushes the `BUILD_ID`-tagged image, and deploys the Cloud Run revision through the dedicated builder identity. Release schema v2 records pre-deploy state, candidate revision and immutable digest, tagged-candidate verification, named promotion, generated and canonical URL checks, recovery, tag cleanup, and final traffic. Failed builds upload the evidence gathered before the failure whenever Cloud Storage remains reachable.
 
-Successful deployments publish a 30-day machine-readable release manifest
-containing the source commit, Cloud Run revision, immutable image digest,
-traffic state, and verification evidence. API rollback is protected, manual,
-and serialized: it accepts a retained known-good deployment run, verifies
-GitHub provenance and confirms the revision still uses the recorded digest,
+Successful deployments publish machine-readable release evidence containing
+the source commit, Cloud Run revision, immutable image digest, traffic state,
+and verification results to a private Cloud Storage bucket with a 30-day
+retention policy. API rollback is protected, manual,
+and serialized: it accepts a successful `sedaia-api-main` Cloud Build ID, verifies
+Cloud Build provenance and confirms the revision still uses the recorded digest,
 routes traffic to that existing revision without rebuilding, and reruns
 production verification. Monitoring and retention setup, alert
 response guidance, and the controlled drill procedure are in

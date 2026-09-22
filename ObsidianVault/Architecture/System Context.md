@@ -3,7 +3,7 @@ tags:
   - architecture
   - context
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # System context
@@ -73,6 +73,6 @@ The most significant privileged boundary is GitHub Actions to Google Cloud. Prod
 ## Source evidence
 
 - Domain and ownership declarations: `../../README.md`
-- CORS allowlist: `../../apps/api/src/main/kotlin/lib/plugins/CorsPlugin.kt`
+- CORS allowlist: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/lib/plugins/CorsPlugin.kt`
 - Deployment identity and public verification URL: `../../.github/workflows/deploy-api.yml`
 - Frontend hosting: `../../apps/portfolio/vercel.json`, `apps/business/vercel.json`

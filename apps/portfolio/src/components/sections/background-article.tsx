@@ -1,3 +1,5 @@
+import { Href } from '~/components/routing/Href.tsx';
+
 export default function BackgroundArticle() {
   return (
     <article id="background">
@@ -14,11 +16,8 @@ export default function BackgroundArticle() {
         My love for computers starts from a young age, when I got my first
         personal computer in 2014. It would be then that I began experimenting
         with Computer Generated Graphics using{' '}
-        <a href="https://blender.org" target="_blank" rel="noopener noreferrer">
-          Blender 3D
-        </a>
-        , a free and open source 3D Rendering, Video Composition, and Image
-        Processing suite
+        <Href href="https://blender.org">Blender 3D</Href>, a free and open
+        source 3D Rendering, Video Composition, and Image Processing suite
       </p>
 
       <h3>My skills</h3>

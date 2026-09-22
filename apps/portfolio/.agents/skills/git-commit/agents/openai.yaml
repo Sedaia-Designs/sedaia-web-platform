@@ -1,4 +1,0 @@
-interface:
-  display_name: "Sedaia Git Commit"
-  short_description: "Create safe repository-scoped Git commits"
-  default_prompt: "Use $git-commit to commit this logical change safely."

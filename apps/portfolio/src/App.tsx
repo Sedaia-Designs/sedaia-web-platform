@@ -1,14 +1,22 @@
-import { createEffect, createSignal, onCleanup } from 'solid-js';
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  Errored,
+  onCleanup,
+} from 'solid-js';
 import './app.scss';
 import BackgroundArticle from './components/sections/background-article';
-import SoftwareProjectsArticle from './components/sections/software-projects-article';
+import SoftwareProjectsArticle from './components/sections/software-projects-article.tsx';
 import RenderProjectsArticle from './components/sections/render-projects-article';
 import TechStacksArticle from './components/sections/tech-stacks-article';
 import Header from './components/sections/header';
 import Navigation from './components/sections/navigation';
 import CollageButton from './components/collage-button';
 import SiteDevWarning from './components/sections/side-dev-warning';
-import GetInTouch from '~/components/sections/get-in-touch';
+import { Contact } from '~/components/sections/get-in-touch';
+import { PortfolioContent } from '~/lib/types';
+import { asyncFetch } from '~/utils/asyncUtils';
 
 // The app root: the central content component — the document shell lives in
 // src/Document.tsx.
@@ -16,6 +24,12 @@ export default function App() {
   const [blur, setBlur] = createSignal(true);
   const [collageLoaded, setCollageLoaded] = createSignal(false);
   let main: HTMLElement | undefined;
+
+  const getContent = createMemo(async (): Promise<PortfolioContent> =>
+    asyncFetch<PortfolioContent>({
+      apiRoute: 'content',
+    }),
+  );
 
   createEffect(
     () => main,
@@ -53,10 +67,11 @@ export default function App() {
         <Header />
         <BackgroundArticle />
         <TechStacksArticle />
-        <SoftwareProjectsArticle />
+        <Errored fallback={<article>Issue loading article</article>}>
+          <SoftwareProjectsArticle content={getContent().programming} />
+        </Errored>
         <RenderProjectsArticle />
-        {/* TODO: Add my Technical credentials regarding my hands on trade work */}
-        <GetInTouch />
+        <Contact content={getContent().contact} />
       </div>
     </main>
   );

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Sedaia Web Platform Commit"
+  short_description: "Create safe monorepo-scoped Git commits"
+  default_prompt: "Use $git-commit to commit this logical monorepo change safely."

@@ -3,8 +3,8 @@ name: Roll back API
 on:
   workflow_dispatch:
     inputs:
-      release_run_id:
-        description: Successful Deploy API workflow run ID to restore
+      cloud_build_id:
+        description: Successful sedaia-api-main Cloud Build ID to restore
         required: true
         type: string
       reason:
@@ -23,6 +23,8 @@ env:
   GCP_PROJECT_ID: sedaia-web-platform-api-508804
   CLOUD_RUN_REGION: us-central1
   CLOUD_RUN_SERVICE: sedaia-api
+  RELEASE_EVIDENCE_BUCKET: sedaia-api-release-evidence-sedaia-web-platform-api-508804
+  DEPLOYMENT_LOCK_BUCKET: sedaia-api-deployment-lock-sedaia-web-platform-api-508804
 
 jobs:
   rollback:
@@ -34,15 +36,13 @@ jobs:
       group: production-api
       cancel-in-progress: false
     permissions:
-      actions: read
       contents: read
       id-token: write
     env:
       CI_PIPELINE_ID: ${{ github.run_id }}
       CI_PIPELINE_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-      RELEASE_RUN_ID: ${{ inputs.release_run_id }}
+      CLOUD_BUILD_ID: ${{ inputs.cloud_build_id }}
       ROLLBACK_REASON: ${{ inputs.reason }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Require main and explicit confirmation
         env:
@@ -51,12 +51,10 @@ jobs:
         run: |
           test "$REQUESTED_REF" = "refs/heads/main"
           test "$CONFIRMATION" = "rollback-production"
-          case "$RELEASE_RUN_ID" in ''|*[!0-9]*) exit 1 ;; esac
+          [[ "$CLOUD_BUILD_ID" =~ ^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$ ]]
           test -n "$ROLLBACK_REASON"
       - name: Check out repository
         uses: actions/checkout@v6
-      - name: Download known-good release manifest
-        run: gh run download "$RELEASE_RUN_ID" --repo "$GITHUB_REPOSITORY" --name api-release-manifest --dir supplied-release
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v3
         with:
@@ -65,8 +63,14 @@ jobs:
           service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
       - name: Set up Google Cloud CLI
         uses: google-github-actions/setup-gcloud@v3
+      - name: Download known-good release manifest
+        run: |
+          mkdir -p supplied-release
+          gcloud storage cp \
+            "gs://sedaia-api-release-evidence-${GCP_PROJECT_ID}/${CLOUD_BUILD_ID}/release.json" \
+            supplied-release/release.json
       - name: Verify release provenance, revision, and digest
-        run: scripts/verify-github-release-manifest-provenance.sh "$RELEASE_RUN_ID" supplied-release/release.json verified-release.json
+        run: scripts/verify-cloud-build-release-manifest-provenance.sh "$CLOUD_BUILD_ID" supplied-release/release.json verified-release.json
       - name: Route traffic to the known-good Cloud Run revision and verify
         run: scripts/rollback-api.sh verified-release.json
       - name: Upload rollback evidence

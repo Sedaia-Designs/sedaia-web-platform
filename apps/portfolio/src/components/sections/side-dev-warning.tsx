@@ -1,3 +1,5 @@
+import { Href } from '~/components/routing/Href.tsx';
+
 export default function SiteDevWarning() {
   return (
     <aside class="site-moved">
@@ -5,7 +7,10 @@ export default function SiteDevWarning() {
       <p>
         This new portfolio is taking over the domain. The previous Sedaia
         Designs website has moved to{' '}
-        <a href="https://sedaia-designs.org">sedaia-designs.org</a>.
+        <Href href="https://sedaia-designs.org" target={'_self'}>
+          sedaia-designs.org
+        </Href>
+        .
       </p>
     </aside>
   );

@@ -3,7 +3,7 @@ tags:
   - architecture
   - runtime
 status: current
-reviewed: 2026-09-19
+reviewed: 2026-09-20
 ---
 
 # Runtime topology
@@ -31,7 +31,7 @@ sequenceDiagram
     VE-->>V: prerendered HTML + static assets
     V->>JS: client interactions/navigation
     Note over JS,API: No application fetch is currently wired
-    JS--xAPI: Future GET /v1/portfolio/
+    JS--xAPI: Future GET /v1/portfolio/content
 ```
 
 The portfolio has no router. It composes one page from section components and uses fine-grained signals for the collage state and image modal. The business site has client-side file-system routes and a catch-all rewrite to `index.html`.
@@ -45,12 +45,12 @@ flowchart LR
     module --> plugins[CORS + JSON + health]
     module --> routing[/v1 route tree]
     routing --> root[GET /v1/]
-    routing --> portfolio[GET /v1/portfolio/]
+    routing --> portfolio[GET /v1/portfolio/content]
     plugins --> live[GET /health/live]
     plugins --> ready[GET /health/ready]
 ```
 
-`EngineMain` reads `application.yaml`, which points to `org.sedaiadesigns.ModuleKt.module` and binds to `$PORT` with `8080` as the local default. `module()` installs plugins before registering routes.
+`EngineMain` reads `application.yaml`, which points to `org.sedaiadesign.api.ModuleKt.module` and binds to `$PORT` with `8080` as the local default. `module()` installs plugins before registering routes.
 
 ## Network and dependency characteristics
 
@@ -69,7 +69,7 @@ flowchart LR
 
 ## Source evidence
 
-- API startup: `../../apps/api/src/main/kotlin/main.kt`, `apps/api/src/main/kotlin/Module.kt`, `apps/api/src/main/resources/application.yaml`
+- API startup: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/main.kt`, `apps/api/src/main/kotlin/org/sedaiadesign/api/Module.kt`, `apps/api/src/main/resources/application.yaml`
 - Frontend Vite configuration: `../../apps/portfolio/vite.config.ts`, `apps/business/vite.config.ts`
 - Vercel behavior: `../../apps/portfolio/vercel.json`, `apps/business/vercel.json`
 - Browser code: `../../apps/portfolio/src/App.tsx`, `apps/business/src/App.tsx`, `apps/business/src/router.ts`

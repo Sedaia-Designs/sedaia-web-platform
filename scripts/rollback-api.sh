@@ -14,20 +14,39 @@ manifest="$1"
 : "${ROLLBACK_REASON:?ROLLBACK_REASON is required}"
 : "${CI_PIPELINE_ID:?CI_PIPELINE_ID is required}"
 : "${CI_PIPELINE_URL:?CI_PIPELINE_URL is required}"
+: "${RELEASE_EVIDENCE_BUCKET:?RELEASE_EVIDENCE_BUCKET is required}"
+: "${DEPLOYMENT_LOCK_BUCKET:?DEPLOYMENT_LOCK_BUCKET is required}"
 
 jq -e --arg project "${GCP_PROJECT_ID}" --arg region "${CLOUD_RUN_REGION}" --arg service "${CLOUD_RUN_SERVICE}" '
   .cloud_run.revision as $revision |
-  .schema_version == 3 and .status == "known-good" and
+  .schema_version == 2 and .status == "known-good" and
   .cloud_run.project == $project and .cloud_run.region == $region and .cloud_run.service == $service and
   .image.uri == (.image.repository + "@" + .image.digest) and
-  .verification.readiness.passed and .verification.portfolio_json.passed and .verification.portfolio_cors.passed and
+  .verification.candidate.readiness.passed and .verification.candidate.portfolio_contract.passed and
+  .verification.candidate.portfolio_cors.passed and .verification.canonical_url.portfolio_contract.passed and
   ([.final_traffic[] | select(.revisionName == $revision) | .percent] | add) == 100
 ' "${manifest}" >/dev/null
 
 target_revision="$(jq -r '.cloud_run.revision' "${manifest}")"
 target_digest="$(jq -r '.image.digest' "${manifest}")"
 target_image_uri="$(jq -r '.image.uri' "${manifest}")"
-service_url="$(jq -r '.cloud_run.service_url' "${manifest}")"
+service_url="$(jq -r '.cloud_run.canonical_url' "${manifest}")"
+
+lock_directory="$(mktemp -d)"
+export DEPLOYMENT_LOCK_OWNER="github-rollback:${CI_PIPELINE_ID}"
+lock_acquired=false
+release_lock() {
+  if [ "${lock_acquired}" = true ]; then
+    scripts/cloud-run-deployment-lock.sh release "${lock_directory}" || \
+      printf 'Rollback completed but the shared deployment lock could not be released.\n' >&2
+  fi
+  rm -rf "${lock_directory}"
+}
+trap release_lock EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+scripts/cloud-run-deployment-lock.sh acquire "${lock_directory}"
+lock_acquired=true
 
 revision_json="$(gcloud run revisions describe "${target_revision}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format=json)"

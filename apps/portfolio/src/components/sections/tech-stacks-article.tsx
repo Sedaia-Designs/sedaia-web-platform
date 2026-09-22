@@ -1,3 +1,5 @@
+import { Href } from '~/components/routing/Href.tsx';
+
 export default function TechStacksArticle() {
   return (
     <article id="tech-stacks">
@@ -7,43 +9,23 @@ export default function TechStacksArticle() {
           <h3>Web Dev</h3>
           <ul id="web-frameworks">
             <li>
-              <a
-                href="https://developer.mozilla.org/en-US/docs/Web/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Href href="https://developer.mozilla.org/en-US/docs/Web/">
                 HTML/CSS
-              </a>
+              </Href>
               {' - Document structure and styling.'}
             </li>
             <li>
-              <a
-                href="https://sass-lang.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SCSS
-              </a>
+              <Href href="https://sass-lang.com/">SCSS</Href>
               {' - Advanced styling.'}
             </li>
             <li>
-              <a
-                href="https://www.solidjs.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                SolidJS
-              </a>
+              <Href href="https://www.solidjs.com/">SolidJS</Href>
               {' - Reactive web framework.'}
             </li>
             <li>
-              <a
-                href="https://www.typescriptlang.org/docs/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Href href="https://www.typescriptlang.org/docs/">
                 TypeScript
-              </a>
+              </Href>
               {' - Interactive logic.'}
             </li>
           </ul>
@@ -52,45 +34,23 @@ export default function TechStacksArticle() {
           <h3>Other</h3>
           <ul id="other-expertise">
             <li>
-              <a
-                href="https://kotlinlang.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Kotlin
-              </a>
+              <Href href="https://kotlinlang.org/">Kotlin</Href>
               {
                 ' - General-purpose JVM and multiplatform application development.'
               }
             </li>
             <li>
-              <a
-                href="https://ktor.io/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Ktor
-              </a>
+              <Href href="https://ktor.io/">Ktor</Href>
               {' - Backend APIs and server application development.'}
             </li>
             <li>
-              <a
-                href="https://docs.blender.org/api/current/index.html"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <Href href="https://docs.blender.org/api/current/index.html">
                 Blender Python API
-              </a>
+              </Href>
               {' - 3D automation and tool scripting in Python.'}
             </li>
             <li>
-              <a
-                href="https://www.python.org/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Python 3
-              </a>
+              <Href href="https://www.python.org/">Python 3</Href>
               {' - General purpose software development.'}
             </li>
           </ul>

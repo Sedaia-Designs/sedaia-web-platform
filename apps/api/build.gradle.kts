@@ -8,6 +8,21 @@ application {
   mainClass = "io.ktor.server.netty.EngineMain"
 }
 
+kotlin {
+  sourceSets.test {
+    kotlin.srcDir("../../scripts/tests")
+  }
+}
+
+val testRuntimeClasspath = sourceSets.test.get().runtimeClasspath
+
+tasks.register("printTestRuntimeClasspath") {
+  dependsOn(tasks.testClasses)
+  doLast {
+    println(testRuntimeClasspath.asPath)
+  }
+}
+
 dependencies {
   implementation(ktorLibs.server.config.yaml)
   implementation(ktorLibs.server.core)

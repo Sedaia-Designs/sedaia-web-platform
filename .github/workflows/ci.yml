@@ -25,6 +25,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Check API
         run: ./gradlew :apps:api:check --no-daemon
+      - name: Test deployment contracts and rollout ordering
+        run: |
+          scripts/tests/verify-api-deployment-test.sh
+          scripts/tests/deploy-cloud-run-safe-test.sh
 
   frontends:
     name: Frontends
@@ -47,6 +51,7 @@ jobs:
           pnpm --filter @sedaia-designs/business-site build
       - name: Validate portfolio
         run: |
+          node -e 'const config = require("./apps/portfolio/vercel.json"); if (config.git?.deploymentEnabled !== false) process.exit(1)'
           pnpm --filter @sedaia-designs/portfolio lint
           pnpm --filter @sedaia-designs/portfolio build
 

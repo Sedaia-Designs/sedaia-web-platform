@@ -40,10 +40,10 @@ Responsibilities are deliberately shallow:
 | --- | --- | --- | --- |
 | `GET /health/live` | KHealth plugin | `{}` JSON, HTTP 200 | Process liveness |
 | `GET /health/ready` | KHealth plugin | `{}` JSON, HTTP 200 | Readiness with no downstream checks |
-| `GET /v1/` | `apiRoutes()` | `Hello Ktor!` text | Version-root smoke endpoint |
-| `GET /v1/portfolio/` | `apiRoutes()` | `PortfolioResponse` JSON | Hard-coded owner/headline and empty projects |
+| `GET /v1` | `apiRoutes()` | `ApiMetadataResponse` JSON | Version-root metadata endpoint |
+| `GET /v1/portfolio/content` | `apiRoutes()` | `PortfolioResponse` JSON | Empty programming collection pending persistence |
 
-The implementation registers trailing-slash forms. Tests use those exact paths, while OpenAPI declares `/v1/portfolio` without a trailing slash. Clients should follow the contract path only after redirect/canonical-path behavior is deliberately verified.
+The implementation, tests, OpenAPI contract, and deployment smoke checks use `/v1/portfolio/content` as the canonical content-delivery path.
 
 ## Serialization model
 
@@ -51,12 +51,18 @@ The implementation registers trailing-slash forms. Tests use those exact paths, 
 
 ```text
 PortfolioResponse
-├── owner: String
-├── headline: String
-└── projects: List<PortfolioProjectResponse>
-    ├── id: String
+├── programming: List<ProgrammingResponse>
     ├── title: String
-    └── description: String?
+    ├── description: String
+    ├── projectPage: String
+    ├── sourceCode: String
+    └── documentation: String?
+└── contact: List<ContactResponse>
+    ├── type: [ContactType](../../apps/api/src/main/kotlin/org/sedaiadesign/api/models/types/ContactType.kt)
+    ├── label: String
+    ├── icon: ContactIconType
+    ├── value: String
+    └── href: String
 ```
 
 There is no domain or persistence layer between routing and response construction. That is proportionate to the current static response, but future persistence should keep transport models separate from database models.
@@ -86,7 +92,7 @@ The build also declares Exposed core/R2DBC, H2, and R2DBC H2. No source imports 
 
 - both health endpoints and their JSON content type;
 - the versioned root;
-- portfolio HTTP status, JSON content type, and owner field;
+- portfolio HTTP status, JSON content type, and current programming titles;
 - allowed production portfolio CORS origin;
 - rejection of an unknown origin.
 
@@ -94,9 +100,9 @@ The tests do not validate the complete portfolio response against OpenAPI, test 
 
 ## Source evidence
 
-- Route entry point: `../../apps/api/src/main/kotlin/routes/Api.kt`
-- Composition root: `../../apps/api/src/main/kotlin/Module.kt`
-- Plugins: `../../apps/api/src/main/kotlin/lib/plugins`
-- Response DTOs: `../../apps/api/src/main/kotlin/models/response`
+- Route entry point: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/routes/Api.kt`
+- Composition root: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/Module.kt`
+- Plugins: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/lib/plugins`
+- Response DTOs: `../../apps/api/src/main/kotlin/org/sedaiadesign/api/models/response`
 - Build dependencies: `../../apps/api/build.gradle.kts`
-- Tests: `../../apps/api/src/test/kotlin/ServerTest.kt`
+- Tests: `../../apps/api/src/test/kotlin/org/sedaiadesign/api/ServerTest.kt`

@@ -38,6 +38,7 @@ out/
 hs_err_pid*
 replay_pid*
 local.properties
+.kotlin/sessions
 
 # Vercel and framework-generated output
 .vercel/
@@ -54,6 +55,12 @@ local.properties
 # Visual Studio Code
 .vscode/
 *.code-workspace
+
+# Obsidian volatile vault state
+ObsidianVault/.obsidian/workspace.json
+ObsidianVault/.obsidian/workspace-mobile.json
+ObsidianVault/.obsidian/cache/
+ObsidianVault/.trash/
 
 # Eclipse
 .classpath

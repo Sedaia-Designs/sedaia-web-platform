@@ -44,21 +44,7 @@ behavior or configuration changes as applicable.
 
 ## Skills
 
-- Use `.agents/skills/code-style` for SolidJS, TypeScript/TSX, Sass, Vite, or
-  frontend configuration changes and reviews.
-- Use `.agents/skills/ui-accessibility` for components, interactions, or layout
-  accessibility.
-- Use `.agents/skills/integrate-brand-icons` when adding or normalizing brand
-  SVGs. Confirm the current asset/component paths before following it because
-  this project is still evolving from its starter template.
-
-- Use `.agents/skills/git-commit` for staging, commit-message preparation, or
-  commits.
-- Use `.agents/skills/edit-changelog` for changelog entries and release notes.
-- Use `.agents/skills/cross-repository-release` for releases that coordinate
-  this frontend with another Sedaia repository.
-- Use `.agents/skills/cross-site-content-migration` when adapting public content
-  between Sedaia properties.
+Use the repository-level skills declared in `../../AGENTS.md`. For portfolio work, apply the frontend code-style, accessibility, and brand-icon skills with this file's portfolio-specific architecture and conventions.
 
 Do not commit, push, tag, release, deploy, or modify remote services without
 explicit authorization.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Edit Platform Changelog"
+  short_description: "Write source-grounded monorepo release notes"
+  default_prompt: "Use $edit-changelog to prepare accurate release notes for this platform change."

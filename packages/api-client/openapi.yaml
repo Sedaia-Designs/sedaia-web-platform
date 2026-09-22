@@ -3,12 +3,32 @@ openapi: 3.0.3
 info:
   title: Sedaia Designs API
   version: 1.0.0
+  license:
+    name: All rights reserved
+    url: https://github.com/Sedaia-Designs/sedaia-web-platform
 
 servers:
   - url: https://api.sedaia-designs.org
 
 paths:
-  /v1/portfolio:
+  /v1:
+    get:
+      operationId: getApiMetadata
+      summary: Get API metadata
+      security: []
+      tags:
+        - Metadata
+      responses:
+        "200":
+          description: API name and version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ApiMetadata"
+        "400":
+          description: Invalid request
+
+  /v1/portfolio/content:
     get:
       operationId: getPortfolio
       summary: Get public portfolio information
@@ -24,36 +44,112 @@ paths:
                 $ref: "#/components/schemas/Portfolio"
         "500":
           description: Unexpected server error
+        "4XX":
+          description: Client request error
 
 components:
   schemas:
+    ApiMetadata:
+      type: object
+      required:
+        - name
+        - version
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: Sedaia Designs API
+        version:
+          type: string
+          minLength: 1
+          example: v1
+
     Portfolio:
       type: object
       required:
-        - owner
-        - headline
-        - projects
+        - programming
+        - contact
+      additionalProperties: false
       properties:
-        owner:
-          type: string
-          example: Sakura Sedaia
-        headline:
-          type: string
-          example: Designer and developer
-        projects:
+        programming:
           type: array
+          minItems: 1
           items:
-            $ref: "#/components/schemas/PortfolioProject"
+            $ref: "#/components/schemas/Programming"
+        contact:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Contact"
 
-    PortfolioProject:
+    Programming:
       type: object
       required:
-        - id
         - title
+        - description
+        - projectPage
+        - sourceCode
+      additionalProperties: false
       properties:
-        id:
-          type: string
         title:
           type: string
+          minLength: 1
         description:
           type: string
+          minLength: 1
+        projectPage:
+          type: string
+          format: uri
+        sourceCode:
+          type: string
+          format: uri
+        documentation:
+          type: string
+          format: uri
+          nullable: true
+
+    Contact:
+      type: object
+      required:
+        - type
+        - label
+        - icon
+        - value
+        - href
+      additionalProperties: false
+      properties:
+        type:
+          type: string
+          enum:
+            - email
+            - discord_user
+            - telegram
+        label:
+          type: string
+          minLength: 1
+        icon:
+          type: string
+          enum:
+            - discord
+            - github
+            - youtube
+            - deviantart
+            - codeberg
+            - gumroad
+            - instagram
+            - pinterest
+            - reddit
+            - twitch
+            - twitter
+            - patreon
+            - telegram
+            - pixiv
+            - envelope
+            - globe
+        value:
+          type: string
+          minLength: 1
+        href:
+          type: string
+          format: uri

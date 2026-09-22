@@ -1,0 +1,4 @@
+interface:
+  display_name: "Cross-Repository Release"
+  short_description: "Coordinate Sedaia platform and repository releases"
+  default_prompt: "Use $cross-repository-release to prepare this coordinated Sedaia release."
