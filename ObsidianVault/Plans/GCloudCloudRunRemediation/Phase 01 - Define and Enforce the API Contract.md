@@ -7,13 +7,13 @@ Make the production smoke test prove the response contract implemented by `../..
 ## Decisions before editing
 
 - [x] Require non-empty `programming` and `contact` arrays. The route already contains reviewed production content, so no placeholder content was added.
-- [x] Define `/v1/` as JSON metadata with the exact stable response `{"name":"Sedaia Designs API","version":"v1"}` and document it in OpenAPI.
+- [x] Define `/v1` as JSON metadata with the exact stable response `{"name":"Sedaia Designs API","version":"v1"}` and document it in OpenAPI.
 - [x] Confirm the implemented stable `PortfolioResponse` fields: `programming` and `contact`; programming items require `title`, `description`, `projectPage`, and `sourceCode`, with optional nullable `documentation`; contact items require `type`, `label`, `icon`, `value`, and `href`.
 
 ## Work
 
 - [x] Replace partial assertions in `../../../apps/api/src/test/kotlin/org/sedaiadesign/api/ServerTest.kt` with structural JSON assertions for exact route fields, types, intentional values, and non-empty lists.
-- [x] Test allowed production CORS origins, a denied unknown origin, response content types, and the selected `/v1/` metadata behavior. Missing fields and wrong types are covered at the deployment-contract boundary by the verifier fixtures.
+- [x] Test allowed production CORS origins, a denied unknown origin, response content types, and the selected `/v1` metadata behavior. Missing fields and wrong types are covered at the deployment-contract boundary by the verifier fixtures.
 - [x] Keep `../../../packages/api-client/openapi.yaml`, Kotlin response models, `Api.kt`, and tests synchronized, including non-empty strings and minimum list sizes that reflect the chosen production policy.
 - [x] Strengthen `../../../scripts/verify-api-deployment.sh` so readiness requires an empty JSON object with the JSON content type, metadata is exact, portfolio fields and item types are validated, lists are non-empty, and an untrusted origin must receive HTTP 403 without a CORS allow header.
 - [x] Record readiness, metadata, portfolio schema policy, allowed-origin behavior, and denied-origin behavior in the machine-readable verification result.
@@ -33,4 +33,4 @@ Local verification completed on 2026-09-20: all verifier fixtures passed, `./gra
 
 ## Exit criterion
 
-The route implementation, models, OpenAPI document, Kotlin tests, deployment smoke test, and release evidence enforce one explicit contract, including non-empty `programming` and `contact` collections and the documented `/v1/` metadata response.
+The route implementation, models, OpenAPI document, Kotlin tests, deployment smoke test, and release evidence enforce one explicit contract, including non-empty `programming` and `contact` collections and the documented `/v1` metadata response.

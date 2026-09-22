@@ -7,7 +7,7 @@ import org.sedaiadesign.api.models.response.ApiMetadataResponse
 import org.sedaiadesign.api.routes.portfolio.portfolioRoutes
 
 fun Route.apiRoutes() {
-  get("/") {
+  get("") {
     call.respond(
       ApiMetadataResponse(
         name = "Sedaia Designs API",

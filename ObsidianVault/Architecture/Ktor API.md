@@ -40,7 +40,7 @@ Responsibilities are deliberately shallow:
 | --- | --- | --- | --- |
 | `GET /health/live` | KHealth plugin | `{}` JSON, HTTP 200 | Process liveness |
 | `GET /health/ready` | KHealth plugin | `{}` JSON, HTTP 200 | Readiness with no downstream checks |
-| `GET /v1/` | `apiRoutes()` | `Hello Ktor!` text | Version-root smoke endpoint |
+| `GET /v1` | `apiRoutes()` | `ApiMetadataResponse` JSON | Version-root metadata endpoint |
 | `GET /v1/portfolio/content` | `apiRoutes()` | `PortfolioResponse` JSON | Empty programming collection pending persistence |
 
 The implementation, tests, OpenAPI contract, and deployment smoke checks use `/v1/portfolio/content` as the canonical content-delivery path.

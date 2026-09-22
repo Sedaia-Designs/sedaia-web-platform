@@ -54,7 +54,7 @@ The original [[../Archives/Plans/GCloudCloudRunSetup/Orchestration|GCloud Cloud 
 
 [[../Plans/GCloudCloudRunRemediation/Phase 01 - Define and Enforce the API Contract|Phase 01]] was completed and committed as `50f34f9` (`[Update: api]: Enforce the production response contract`).
 
-- Defined `/v1/` as exact JSON metadata: `{"name":"Sedaia Designs API","version":"v1"}`.
+- Defined `/v1` as exact JSON metadata: `{"name":"Sedaia Designs API","version":"v1"}`.
 - Required non-empty `programming` and `contact` arrays with synchronized Kotlin models, route output, tests, and OpenAPI schema.
 - Strengthened `scripts/verify-api-deployment.sh` to validate readiness content type/body, metadata, the full portfolio structure, allowed-origin CORS, and denied-origin behavior.
 - Added machine-readable verification output and fixture coverage for valid payload, malformed JSON, missing fields, wrong types, invalid CORS, timeouts, readiness failure, and portfolio failure.

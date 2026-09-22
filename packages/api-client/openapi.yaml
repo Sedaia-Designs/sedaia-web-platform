@@ -3,12 +3,15 @@ openapi: 3.0.3
 info:
   title: Sedaia Designs API
   version: 1.0.0
+  license:
+    name: All rights reserved
+    url: https://github.com/Sedaia-Designs/sedaia-web-platform
 
 servers:
   - url: https://api.sedaia-designs.org
 
 paths:
-  /v1/:
+  /v1:
     get:
       operationId: getApiMetadata
       summary: Get API metadata
@@ -22,6 +25,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ApiMetadata"
+        "400":
+          description: Invalid request
 
   /v1/portfolio/content:
     get:
@@ -39,6 +44,8 @@ paths:
                 $ref: "#/components/schemas/Portfolio"
         "500":
           description: Unexpected server error
+        "4XX":
+          description: Client request error
 
 components:
   schemas:

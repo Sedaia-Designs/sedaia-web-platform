@@ -15,7 +15,7 @@ fun main(args: Array<String>) {
   scenario = args[0]
   val server = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
   server.createContext("/health/ready", ::readiness)
-  server.createContext("/v1/", ::api)
+  server.createContext("/v1", ::api)
   server.start()
   Files.writeString(Path.of(args[1]), server.address.port.toString())
 }
@@ -32,7 +32,7 @@ private fun readiness(exchange: HttpExchange) {
 }
 
 private fun api(exchange: HttpExchange) {
-  if (exchange.requestURI.path == "/v1/") {
+  if (exchange.requestURI.path == "/v1") {
     exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
     return
   }

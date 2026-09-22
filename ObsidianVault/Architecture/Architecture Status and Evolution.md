@@ -18,7 +18,7 @@ This page prevents planned architecture from being mistaken for implemented arch
 | Static portfolio | Implemented | Domain content and interactions in portfolio TSX |
 | Routed business SPA shell | Implemented | File routes, typed paths, Vercel rewrite |
 | Finished business website | Not implemented | Source remains Solid starter/demo content |
-| Versioned public API | Implemented | `/v1/` and `/v1/portfolio/content` routes |
+| Versioned public API | Implemented | `/v1` and `/v1/portfolio/content` routes |
 | API-backed portfolio | Planned/scaffolded | CORS, OpenAPI, and env documentation exist; no client call |
 | API persistence | Scaffolded only | Database dependencies exist; no connection or repository code |
 | Generated TypeScript API client | Not implemented | Only `openapi.yaml` exists in package directory |

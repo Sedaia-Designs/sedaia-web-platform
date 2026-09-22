@@ -98,7 +98,7 @@ metadata_status="$(
     --write-out '%{http_code}' \
     --connect-timeout 3 \
     --max-time 10 \
-    "${base_url}/v1/"
+    "${base_url}/v1"
 )"
 
 if [ "${metadata_status}" != "200" ] ||

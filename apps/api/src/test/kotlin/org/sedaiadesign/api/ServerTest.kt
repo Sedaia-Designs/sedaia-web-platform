@@ -45,7 +45,7 @@ class ServerTest {
   fun `versioned root endpoint describes the api`() = testApplication {
     configure()
 
-    val response = client.get("/v1/")
+    val response = client.get("/v1")
 
     assertEquals(HttpStatusCode.OK, response.status)
     assertEquals(ContentType.Application.Json, response.contentType()?.withoutParameters())
