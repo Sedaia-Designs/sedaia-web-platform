@@ -8,5 +8,5 @@ data class ProgrammingResponse(
   val description: String,
   val projectPage: String,
   val sourceCode: String,
-  val documentation: String? = null
+  val documentation: String
 )
