@@ -126,22 +126,11 @@ run_pre_deploy_case() {
     exit 1
   fi
   if [ "${expected_result}" = pass ]; then
-    if [ "${expected_path}" = '/v1/' ]; then
-      jq --exit-status --arg path "${expected_path}" '
-        .readiness.passed and .api_metadata.path == $path and
-        .api_metadata.http_status == 200 and
-        .api_metadata.content_type == "text/plain; charset=utf-8" and
-        .api_metadata.response == "Hello Ktor!" and
-        .canonical_api_metadata.http_status == 404 and
-        .legacy_compatibility.used
-      ' "${result_file}" >/dev/null
-    else
-      jq --exit-status --arg path "${expected_path}" '
-        .readiness.passed and .api_metadata.path == $path and
-        (.api_metadata.response | type == "object" and length > 0) and
-        (.legacy_compatibility.used | not)
-      ' "${result_file}" >/dev/null
-    fi
+    jq --exit-status --arg path "${expected_path}" '
+      .readiness.passed and .api_metadata.path == $path and
+      (.api_metadata.response | type == "object" and length > 0) and
+      (.legacy_compatibility.used | not)
+    ' "${result_file}" >/dev/null
   elif [ -e "${result_file}" ]; then
     printf 'Failed pre-deploy scenario unexpectedly produced evidence.\n' >&2
     exit 1
@@ -151,7 +140,7 @@ run_pre_deploy_case() {
 
 legacy_digest=sha256:13f83e2eb79fc89f2e7ad2a54d694a3b80bdd57107783fca33b126bac2c51598
 run_pre_deploy_case valid sedaia-api-current sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc pass /v1
-run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 "${legacy_digest}" pass /v1/
+run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 "${legacy_digest}" fail ''
 run_pre_deploy_case legacy-metadata sedaia-api-unknown "${legacy_digest}" fail ''
 run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd fail ''
 run_pre_deploy_case legacy-wrong-body sedaia-api-00006-xb4 "${legacy_digest}" fail ''

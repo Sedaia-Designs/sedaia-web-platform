@@ -57,30 +57,13 @@ jq -e '.verification.pre_deploy_generated_service_url.api_metadata.response.vers
   "${test_directory}/success-evidence/release.json" >/dev/null
 
 export USE_LEGACY_PRE_DEPLOY=true
-run_scenario legacy-pre-deploy
-jq -e '
-  .status == "known-good" and
-  .verification.pre_deploy_generated_service_url.legacy_compatibility.used and
-  .verification.pre_deploy_generated_service_url.api_metadata.path == "/v1/" and
-  .verification.pre_deploy_generated_service_url.api_metadata.content_type == "text/plain; charset=utf-8" and
-  .verification.pre_deploy_generated_service_url.api_metadata.response == "Hello Ktor!" and
-  .verification.candidate.api_metadata.passed
-' "${test_directory}/legacy-pre-deploy-evidence/release.json" >/dev/null
-legacy_log="${test_directory}/legacy-pre-deploy-state/commands.log"
-grep -q 'pre-deploy-verify https://generated.test sedaia-api-prior sha256:aaaaaaaa' "${legacy_log}"
-grep -q 'verify https://candidate.test' "${legacy_log}"
-unset USE_LEGACY_PRE_DEPLOY
-
-export USE_LEGACY_PRE_DEPLOY=true
-export LEGACY_PRE_DEPLOY_REVISION=sedaia-api-other
-if run_scenario unknown-legacy-revision; then
-  printf 'An unapproved legacy pre-deploy revision unexpectedly succeeded.\n' >&2
+if run_scenario retired-legacy-response; then
+  printf 'The retired legacy pre-deploy response unexpectedly succeeded.\n' >&2
   exit 1
 fi
-unknown_log="${test_directory}/unknown-legacy-revision-state/commands.log"
-! grep -q 'run deploy' "${unknown_log}"
+retired_legacy_log="${test_directory}/retired-legacy-response-state/commands.log"
+! grep -q 'run deploy' "${retired_legacy_log}"
 unset USE_LEGACY_PRE_DEPLOY
-export LEGACY_PRE_DEPLOY_REVISION=sedaia-api-prior
 
 for failure_mode in wrong-body wrong-content-type empty-body redirect wrong-digest non-404-canonical; do
   export PRE_DEPLOY_FAILURE_MODE="${failure_mode}"
