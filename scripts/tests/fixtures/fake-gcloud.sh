@@ -58,7 +58,7 @@ if [[ "$1 $2 $3" == "run services update-traffic" ]]; then
     : > "${FAKE_GCLOUD_STATE}/promoted"
   elif has_argument '--to-revisions=sedaia-api-prior=100' "$@"; then
     rm -f "${FAKE_GCLOUD_STATE}/promoted"
-  elif has_argument '--remove-tags=build-12345678123412341234123456789abc' "$@"; then
+  elif has_argument '--remove-tags=b-12345678123412341234123456789abc' "$@"; then
     : > "${FAKE_GCLOUD_STATE}/tag-removed"
   fi
   exit 0
@@ -73,7 +73,7 @@ if [[ "$1 $2 $3" == "run services describe" ]]; then
     revision='sedaia-api-prior'
   fi
   if [[ -e "${FAKE_GCLOUD_STATE}/deployed" && ! -e "${FAKE_GCLOUD_STATE}/tag-removed" ]]; then
-    tag=',{"revisionName":"sedaia-api-candidate","percent":0,"tag":"build-12345678123412341234123456789abc","url":"https://candidate.test"}'
+    tag=',{"revisionName":"sedaia-api-candidate","percent":0,"tag":"b-12345678123412341234123456789abc","url":"https://candidate.test"}'
   else
     tag=''
   fi

@@ -39,7 +39,7 @@ fi
 readonly output_directory="$1"
 readonly image_repository="${CLOUD_RUN_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${ARTIFACT_REGISTRY_REPOSITORY}/${CLOUD_RUN_SERVICE}"
 readonly image_tag="${image_repository}:${CLOUD_BUILD_ID}"
-readonly traffic_tag="build-${CLOUD_BUILD_ID//-/}"
+readonly traffic_tag="b-${CLOUD_BUILD_ID//-/}"
 readonly lock_directory="${output_directory}/lock"
 readonly evidence_uri="gs://${RELEASE_EVIDENCE_BUCKET}/${CLOUD_BUILD_ID}/"
 readonly started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

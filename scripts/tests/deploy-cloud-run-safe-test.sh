@@ -26,6 +26,9 @@ export PRE_DEPLOY_VERIFIER="${repository_root}/scripts/tests/fixtures/fake-pre-d
 export LEGACY_PRE_DEPLOY_REVISION=sedaia-api-prior
 export LEGACY_PRE_DEPLOY_DIGEST=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
+expected_traffic_tag=b-12345678123412341234123456789abc
+(( ${#CLOUD_RUN_SERVICE} + ${#expected_traffic_tag} <= 46 ))
+
 run_scenario() {
   local scenario="$1"
   export FAKE_GCLOUD_STATE="${test_directory}/${scenario}-state"
@@ -100,7 +103,7 @@ jq -e '
 ' "${test_directory}/candidate-failure-evidence/release.json" >/dev/null
 failure_log="${test_directory}/candidate-failure-state/commands.log"
 ! grep -q -- '--to-revisions=sedaia-api-candidate=100' "${failure_log}"
-grep -q -- '--remove-tags=build-12345678123412341234123456789abc' "${failure_log}"
+grep -q -- "--remove-tags=${expected_traffic_tag}" "${failure_log}"
 grep -q 'storage cp.*/12345678-1234-1234-1234-123456789abc/' "${failure_log}"
 
 unset FAIL_CANDIDATE
@@ -117,7 +120,7 @@ promotion_failure_log="${test_directory}/promotion-failure-state/commands.log"
 promote_line="$(grep -n -- '--to-revisions=sedaia-api-candidate=100' "${promotion_failure_log}" | cut -d: -f1)"
 restore_line="$(grep -n -- '--to-revisions=sedaia-api-prior=100' "${promotion_failure_log}" | cut -d: -f1)"
 (( promote_line < restore_line ))
-grep -q -- '--remove-tags=build-12345678123412341234123456789abc' "${promotion_failure_log}"
+grep -q -- "--remove-tags=${expected_traffic_tag}" "${promotion_failure_log}"
 grep -q 'storage cp.*/12345678-1234-1234-1234-123456789abc/' "${promotion_failure_log}"
 
 printf 'Safe Cloud Run ordering, candidate isolation, and post-promotion recovery passed.\n'
