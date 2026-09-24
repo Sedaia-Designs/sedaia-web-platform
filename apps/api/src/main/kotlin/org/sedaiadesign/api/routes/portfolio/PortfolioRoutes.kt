@@ -10,6 +10,36 @@ import org.sedaiadesign.api.models.response.portfolio.ProgrammingResponse
 import org.sedaiadesign.api.models.types.ContactIconType
 import org.sedaiadesign.api.models.types.ContactType
 
+/**
+ * Configures the portfolio-related API routes.
+ *
+ * This function defines routes under the `/portfolio` path, with the following endpoints:
+ * - `/content`: Handles HTTP GET requests and responds with a `PortfolioResponse` containing
+ *   detailed information about programming projects and contact methods.
+ *
+ * The `/content` response includes:
+ * - A list of programming project details, encapsulated in `ProgrammingResponse`, which includes:
+ *   - Project title
+ *   - Project description
+ *   - Links to the project page, source code, and documentation
+ * - A list of contact methods, encapsulated in `ContactResponse`, which includes:
+ *   - Contact type (e.g., Email, Discord User, Telegram)
+ *   - Label and icon type for the contact method
+ *   - The contact value (e.g., email address, Discord ID)
+ *
+ * Example programming projects returned in the response include:
+ * - Blender Development for PyCharm: A PyCharm plugin for Blender scripting and debugging.
+ * - Sakura Advanced Character Rig: A Blender rig for Minecraft-style renders.
+ *
+ * The included contact methods provide ways to connect to the associated organization or individual
+ * via platforms like Discord, Telegram, and Email.
+ *
+ * The data models used in the response are:
+ * - `PortfolioResponse`: Represents the overall structure of the response, containing
+ *   programming projects and contact methods.
+ * - `ProgrammingResponse`: Represents individual programming project details.
+ * - `ContactResponse`: Represents individual contact methods and their associated metadata.
+ */
 fun Route.portfolioRoutes() {
   route("/portfolio") {
     get("/content") {
