@@ -33,7 +33,15 @@ private fun readiness(exchange: HttpExchange) {
 
 private fun api(exchange: HttpExchange) {
   if (exchange.requestURI.path == "/v1") {
-    exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
+    if (scenario == "legacy-metadata") {
+      exchange.respond(404, "{\"error\":\"Not Found\"}")
+    } else {
+      exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
+    }
+    return
+  }
+  if (exchange.requestURI.path == "/v1/") {
+    exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"legacy\"}")
     return
   }
 
