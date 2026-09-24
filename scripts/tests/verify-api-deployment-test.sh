@@ -126,11 +126,22 @@ run_pre_deploy_case() {
     exit 1
   fi
   if [ "${expected_result}" = pass ]; then
-    jq --exit-status --arg path "${expected_path}" '
-      .readiness.passed and .api_metadata.path == $path and
-      (.api_metadata.response | type == "object" and length > 0)
-    ' \
-      "${result_file}" >/dev/null
+    if [ "${expected_path}" = '/v1/' ]; then
+      jq --exit-status --arg path "${expected_path}" '
+        .readiness.passed and .api_metadata.path == $path and
+        .api_metadata.http_status == 200 and
+        .api_metadata.content_type == "text/plain; charset=utf-8" and
+        .api_metadata.response == "Hello Ktor!" and
+        .canonical_api_metadata.http_status == 404 and
+        .legacy_compatibility.used
+      ' "${result_file}" >/dev/null
+    else
+      jq --exit-status --arg path "${expected_path}" '
+        .readiness.passed and .api_metadata.path == $path and
+        (.api_metadata.response | type == "object" and length > 0) and
+        (.legacy_compatibility.used | not)
+      ' "${result_file}" >/dev/null
+    fi
   elif [ -e "${result_file}" ]; then
     printf 'Failed pre-deploy scenario unexpectedly produced evidence.\n' >&2
     exit 1
@@ -143,5 +154,9 @@ run_pre_deploy_case valid sedaia-api-current sha256:cccccccccccccccccccccccccccc
 run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 "${legacy_digest}" pass /v1/
 run_pre_deploy_case legacy-metadata sedaia-api-unknown "${legacy_digest}" fail ''
 run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd fail ''
+run_pre_deploy_case legacy-wrong-body sedaia-api-00006-xb4 "${legacy_digest}" fail ''
+run_pre_deploy_case legacy-wrong-content-type sedaia-api-00006-xb4 "${legacy_digest}" fail ''
+run_pre_deploy_case legacy-empty sedaia-api-00006-xb4 "${legacy_digest}" fail ''
+run_pre_deploy_case legacy-redirect sedaia-api-00006-xb4 "${legacy_digest}" fail ''
 run_pre_deploy_case metadata-unavailable sedaia-api-00006-xb4 "${legacy_digest}" fail ''
 run_pre_deploy_case invalid-canonical-metadata sedaia-api-current sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc fail ''

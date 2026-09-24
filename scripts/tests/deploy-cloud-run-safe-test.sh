@@ -59,7 +59,8 @@ jq -e '
   .status == "known-good" and
   .verification.pre_deploy_generated_service_url.legacy_compatibility.used and
   .verification.pre_deploy_generated_service_url.api_metadata.path == "/v1/" and
-  .verification.pre_deploy_generated_service_url.api_metadata.response.version == "legacy" and
+  .verification.pre_deploy_generated_service_url.api_metadata.content_type == "text/plain; charset=utf-8" and
+  .verification.pre_deploy_generated_service_url.api_metadata.response == "Hello Ktor!" and
   .verification.candidate.api_metadata.passed
 ' "${test_directory}/legacy-pre-deploy-evidence/release.json" >/dev/null
 legacy_log="${test_directory}/legacy-pre-deploy-state/commands.log"
@@ -77,6 +78,16 @@ unknown_log="${test_directory}/unknown-legacy-revision-state/commands.log"
 ! grep -q 'run deploy' "${unknown_log}"
 unset USE_LEGACY_PRE_DEPLOY
 export LEGACY_PRE_DEPLOY_REVISION=sedaia-api-prior
+
+for failure_mode in wrong-body wrong-content-type empty-body redirect wrong-digest non-404-canonical; do
+  export PRE_DEPLOY_FAILURE_MODE="${failure_mode}"
+  if run_scenario "legacy-${failure_mode}"; then
+    printf 'Legacy compatibility failure %s unexpectedly succeeded.\n' "${failure_mode}" >&2
+    exit 1
+  fi
+  ! grep -q 'run deploy' "${test_directory}/legacy-${failure_mode}-state/commands.log"
+done
+unset PRE_DEPLOY_FAILURE_MODE
 
 export FAIL_CANDIDATE=true
 if run_scenario candidate-failure; then

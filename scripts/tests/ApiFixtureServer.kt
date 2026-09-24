@@ -34,7 +34,7 @@ private fun readiness(exchange: HttpExchange) {
 private fun api(exchange: HttpExchange) {
   if (exchange.requestURI.path == "/v1") {
     when (scenario) {
-      "legacy-metadata" -> exchange.respond(404, "{\"error\":\"Not Found\"}")
+      "legacy-metadata", "legacy-wrong-body", "legacy-wrong-content-type", "legacy-empty", "legacy-redirect" -> exchange.respond(404, "")
       "metadata-unavailable" -> exchange.respond(503, "{\"error\":\"Unavailable\"}")
       "invalid-canonical-metadata" -> exchange.respond(200, "{\"name\":\"Wrong API\",\"version\":\"v1\"}")
       else -> exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
@@ -42,7 +42,17 @@ private fun api(exchange: HttpExchange) {
     return
   }
   if (exchange.requestURI.path == "/v1/") {
-    exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"legacy\"}")
+    when (scenario) {
+      "legacy-metadata" -> exchange.respond(200, "Hello Ktor!", contentType = "text/plain; charset=UTF-8")
+      "legacy-wrong-body" -> exchange.respond(200, "Hello Ktor?", contentType = "text/plain; charset=UTF-8")
+      "legacy-wrong-content-type" -> exchange.respond(200, "Hello Ktor!", contentType = "text/html; charset=UTF-8")
+      "legacy-empty" -> exchange.respond(200, "", contentType = "text/plain; charset=UTF-8")
+      "legacy-redirect" -> {
+        exchange.responseHeaders.set("Location", "/v1/elsewhere")
+        exchange.respond(302, "", contentType = "text/plain; charset=UTF-8")
+      }
+      else -> exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"legacy\"}")
+    }
     return
   }
 
@@ -65,9 +75,14 @@ private fun api(exchange: HttpExchange) {
   }
 }
 
-private fun HttpExchange.respond(status: Int, body: String, origin: String? = null) {
+private fun HttpExchange.respond(
+  status: Int,
+  body: String,
+  origin: String? = null,
+  contentType: String = "application/json",
+) {
   val bytes = body.toByteArray(StandardCharsets.UTF_8)
-  responseHeaders.set("Content-Type", "application/json")
+  responseHeaders.set("Content-Type", contentType)
   origin?.let { responseHeaders.set("Access-Control-Allow-Origin", it) }
   sendResponseHeaders(status, bytes.size.toLong())
   responseBody.use { it.write(bytes) }
