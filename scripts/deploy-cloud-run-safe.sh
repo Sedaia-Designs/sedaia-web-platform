@@ -44,6 +44,7 @@ readonly lock_directory="${output_directory}/lock"
 readonly evidence_uri="gs://${RELEASE_EVIDENCE_BUCKET}/${CLOUD_BUILD_ID}/"
 readonly started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 readonly deployment_verifier="${DEPLOYMENT_VERIFIER:-scripts/verify-api-deployment.sh}"
+readonly pre_deploy_verifier="${PRE_DEPLOY_VERIFIER:-scripts/verify-api-pre-deploy.sh}"
 
 candidate_revision=""
 candidate_url=""
@@ -118,7 +119,8 @@ restore_previous_traffic() {
 write_manifest() {
   local status="$1"
   local evidence_file
-  for evidence_file in pre-deploy-service.json candidate-verification.json promotion-generated-verification.json \
+  for evidence_file in pre-deploy-service.json pre-deploy-generated-verification.json \
+    pre-deploy-canonical-verification.json candidate-verification.json promotion-generated-verification.json \
     promotion-canonical-verification.json final-service.json; do
     if [[ ! -f "${output_directory}/${evidence_file}" ]]; then
       printf '{}\n' > "${output_directory}/${evidence_file}"
@@ -127,6 +129,8 @@ write_manifest() {
   jq --null-input \
     --slurpfile before "${output_directory}/pre-deploy-service.json" \
     --slurpfile final "${output_directory}/final-service.json" \
+    --slurpfile pre_deploy_generated_verification "${output_directory}/pre-deploy-generated-verification.json" \
+    --slurpfile pre_deploy_canonical_verification "${output_directory}/pre-deploy-canonical-verification.json" \
     --slurpfile candidate_verification "${output_directory}/candidate-verification.json" \
     --slurpfile generated_verification "${output_directory}/promotion-generated-verification.json" \
     --slurpfile canonical_verification "${output_directory}/promotion-canonical-verification.json" \
@@ -147,7 +151,8 @@ write_manifest() {
        image: {repository: $image_repository, digest: $image_digest, uri: $image_uri},
        pre_deploy_traffic: $before[0].status.traffic,
        final_traffic: ($final[0].status.traffic // []),
-       verification: {candidate: $candidate_verification[0],
+       verification: {pre_deploy_generated_service_url: $pre_deploy_generated_verification[0],
+          pre_deploy_canonical_url: $pre_deploy_canonical_verification[0], candidate: $candidate_verification[0],
          generated_service_url: $generated_verification[0], canonical_url: $canonical_verification[0]},
        outcome: {promoted: $promoted, rollback_attempted: $rollback_attempted,
          rollback_passed: $rollback_passed, temporary_tag_removed: $tag_removed}}
@@ -214,9 +219,12 @@ previous_revision="$(jq -r '.status.traffic | max_by(.percent).revisionName' "${
 gcloud run revisions describe "${previous_revision}" \
   --project="${GCP_PROJECT_ID}" --region="${CLOUD_RUN_REGION}" --format=json \
   > "${output_directory}/pre-deploy-revision.json"
-"${deployment_verifier}" "$(jq -r '.status.url' "${output_directory}/pre-deploy-service.json")" \
+previous_image_digest="$(jq -r '.status.imageDigest | split("@") | last' "${output_directory}/pre-deploy-revision.json")"
+"${pre_deploy_verifier}" "$(jq -r '.status.url' "${output_directory}/pre-deploy-service.json")" \
+  "${previous_revision}" "${previous_image_digest}" \
   "${output_directory}/pre-deploy-generated-verification.json"
-"${deployment_verifier}" "${CANONICAL_API_URL%/}" \
+"${pre_deploy_verifier}" "${CANONICAL_API_URL%/}" \
+  "${previous_revision}" "${previous_image_digest}" \
   "${output_directory}/pre-deploy-canonical-verification.json"
 
 stage="deploy-zero-traffic-candidate"
