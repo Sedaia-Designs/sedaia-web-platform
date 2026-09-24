@@ -1,1 +1,0 @@
-This Obsidian vault is here for taking notes on key website orchestration and operation, allowing me to take notes of the full architecture, process, and ability of this monorepo to orchestrate my Website Platform.

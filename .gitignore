@@ -81,3 +81,4 @@ bin/
 # Legacy Cloud Run and GitLab CI reference files
 .reference
 .reference/legacy-cloud-run-cicd/
+/ObsidianVault/
