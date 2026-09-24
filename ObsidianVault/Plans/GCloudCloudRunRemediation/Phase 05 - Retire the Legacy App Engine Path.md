@@ -6,7 +6,7 @@ End the App Engine fallback deliberately after Cloud Run has proven safe deploym
 
 ## Preconditions
 
-- [ ] Phases 00–04 are complete with links to evidence.
+- [ ] Phases 00–04 are complete with links to evidence.[^platform-fallback]
 - [ ] The production owner accepts the Cloud Run observation window and records the decision, date, residual risks, and rollback authority.
 - [ ] Public and authoritative DNS resolve `api.sedaia-designs.org` only to the Google load balancer, the managed certificate is active, and no App Engine domain mapping or frontend configuration is still required for API traffic.
 - [ ] At least two current known-good Cloud Run revisions and immutable digests remain recoverable under the tested rollback procedure.
@@ -19,7 +19,7 @@ End the App Engine fallback deliberately after Cloud Run has proven safe deploym
 - [ ] Stop the serving App Engine version with `gcloud app versions stop --service=default 20260918t095626 --project=sedaia-web-platform-api-508804` only after the preconditions pass. Do not attempt to delete the App Engine `default` service.
 - [ ] Verify the version reports stopped, Cloud Run remains healthy at both endpoints, DNS and TLS remain correct, alerts remain enabled, and no unexpected requests appear in App Engine logs during the agreed follow-up window.
 - [ ] Remove obsolete App Engine credentials and IAM bindings only after confirming they are unused. Preserve final evidence for the agreed audit period.
-- [ ] Update all orchestration and status notes to state that Cloud Run is production and App Engine is retired, including the recovery implications of a stopped legacy version.
+- [ ] Update all orchestration and status notes to state that Cloud Run is production and App Engine is retired, including the recovery implications of a stopped legacy version.[^platform-final-state]
 
 ## Failure handling
 
@@ -28,3 +28,6 @@ If a previously unknown dependency still calls App Engine, record it and decide 
 ## Exit criterion
 
 The App Engine version is stopped, no production dependency or automation targets it, Cloud Run and monitoring remain healthy through the accepted follow-up window, and the final legacy evidence and reactivation limitations are documented.
+
+[^platform-fallback]: [[../SedaiaPlatformBuildout/Phase 12 - Backup Disaster Recovery and Runbooks#Ordered steps|Overall Platform Buildout Phase 12]] prohibits fallback retirement until this remediation plan’s exit criteria and observation window pass and explicitly leaves App Engine retirement under this phase’s authority.
+[^platform-final-state]: [[../SedaiaPlatformBuildout/Phase 14 - Final Production Verification#Ordered steps|Overall Platform Buildout Phase 14]] must independently verify the API’s App Engine fallback status, retained evidence, recovery path, and active-plan relationships before platform acceptance.

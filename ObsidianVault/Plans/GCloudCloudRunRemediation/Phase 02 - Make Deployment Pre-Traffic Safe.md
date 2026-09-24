@@ -10,13 +10,13 @@ Verify the exact candidate revision before production traffic moves, promote onl
 - [x] Change the deploy step to create a zero-traffic candidate with a unique, DNS-safe traffic tag derived from the build ID. Do not use `--to-latest` as the promotion target because “latest” can change under concurrent or break-glass activity.
 - [x] Resolve the candidate revision by its build label and verify its image digest, readiness condition, runtime identity, probes, resources, scaling, and zero production traffic before calling its tagged URL.
 - [x] Run the strengthened Phase 01 verification against the tagged candidate URL. A failure must leave the prior production traffic allocation unchanged.
-- [x] Promote the exact candidate revision to 100 percent only after candidate verification passes. Serialize all deployment and rollback entry points using one enforceable lock or policy, not merely documentation.
+- [x] Promote the exact candidate revision to 100 percent only after candidate verification passes. Serialize all deployment and rollback entry points using one enforceable lock or policy, not merely documentation.[^platform-ci-promotion]
 - [x] Verify both the generated service URL and canonical hostname after promotion. If either post-promotion check fails, restore the captured prior revision and verify recovery; retain evidence of the candidate failure, promotion attempt, rollback, and final traffic state.
 - [x] Remove the temporary traffic tag after successful verification or rollback so stale tags do not accumulate or impede revision cleanup.
 - [x] Make `CI_COMMIT_SHA` and repository identity mandatory and format-validated. Never mark a release `known-good` when either value is missing or `unavailable`.
 - [x] Upload staged evidence even on failure. Separate candidate evidence, promotion evidence, canonical verification, recovery evidence, and final state. Ensure a failed evidence upload does not erase local diagnostic output from the build log.
 - [x] Make the rollback workflow consume the same retained Cloud Storage release schema produced by routine automatic builds, or generate an equivalent signed/provenance-checked artifact that the workflow can retrieve without depending on an unrelated manual deployment run.
-- [x] Add build-level tests or a dry-run harness that proves ordering: deploy at zero traffic → candidate verify → named promotion → canonical verify → evidence finalization, with rollback after any post-promotion failure.
+- [x] Add build-level tests or a dry-run harness that proves ordering: deploy at zero traffic → candidate verify → named promotion → canonical verify → evidence finalization, with rollback after any post-promotion failure.[^platform-api-deploy]
 
 Repository implementation completed on 2026-09-21. Local dry-run coverage proves successful ordering, zero-traffic isolation for a contract-invalid candidate, shared lock use, temporary-tag cleanup, failure evidence upload, and restoration of the captured traffic allocation after a post-promotion verification failure. The dedicated lock bucket and controlled production validation remain operator work; Phase 02 is not complete until the controlled validation and negative drill below are evidenced.
 
@@ -127,13 +127,13 @@ Schedule a low-risk operator window and prepare a short-lived reviewed drill com
 
 The local dry-run harness already proves that a post-promotion verification failure invokes restoration of the captured traffic allocation, verifies recovery, removes the candidate tag, and uploads failure evidence. Do not manufacture a production hostname or application outage merely to repeat that path. A live post-promotion drill is optional and may run only after an operator approves a reversible method that cannot create customer-visible failure; otherwise retain the local harness output as the Phase 02 recovery-path evidence and defer a live exercise to an isolated Cloud Run drill service.
 
-- [ ] Attach the successful `scripts/tests/deploy-cloud-run-safe-test.sh` output to the Phase 02 evidence record.
+- [ ] Attach the successful `scripts/tests/deploy-cloud-run-safe-test.sh` output to the Phase 02 evidence record.[^platform-recovery-drill]
 - [ ] If an isolated live recovery drill is approved, record the separate service, fault-injection method, captured allocation, promotion, automatic restoration, generated and canonical verification, tag cleanup, lock cleanup, and evidence prefix; never aim fault injection at the production canonical hostname.
 
 ### 6. Close the operator gate
 
 - [ ] Add a dated validation record to this note containing the positive build, negative build, revert build, revisions, digests, evidence locations, final traffic, and operator identity.
-- [ ] Verify production ends on the intended reviewed revision at 100 percent traffic, both generated and canonical verification pass, no temporary tag remains, and no lock object remains.
+- [ ] Verify production ends on the intended reviewed revision at 100 percent traffic, both generated and canonical verification pass, no temporary tag remains, and no lock object remains.[^platform-publication]
 - [ ] Mark Phase 02 complete only when every operator checkbox above is satisfied or the optional live recovery drill is explicitly documented as deferred in favor of the passing isolated harness evidence.
 
 ## Controlled validation
@@ -143,3 +143,8 @@ Use a harmless reviewed API change merged through protected `main`. Confirm exac
 ## Exit criterion
 
 A good candidate is verified before receiving traffic and promoted by immutable revision name; a bad candidate remains at zero percent; a failed post-promotion check restores the captured prior revision; every outcome retains source, digest, revision, traffic, verification, and recovery evidence.
+
+[^platform-ci-promotion]: [[../SedaiaPlatformBuildout/Phase 10 - CI Environments Secrets and Supply Chain#Ordered steps|Overall Platform Buildout Phase 10]] requires serialized production mutations, exact source/ref provenance, retained success/failure evidence, and failed-candidate testing; API workflow changes must use this remediation mechanism.
+[^platform-api-deploy]: [[../SedaiaPlatformBuildout/Phase 07 - Ktor API and Shared Contract#Ordered steps|Overall Platform Buildout Phase 07]] requires API deployment through this exact zero-traffic candidate, exact-revision verification, named promotion, evidence, and recovery sequence.
+[^platform-recovery-drill]: [[../SedaiaPlatformBuildout/Phase 12 - Backup Disaster Recovery and Runbooks#Ordered steps|Overall Platform Buildout Phase 12]] requires an immutable Cloud Run rollback drill under this remediation procedure and restoration to the intended revision.
+[^platform-publication]: [[../SedaiaPlatformBuildout/Phase 13 - Staged Deployment and Publication#Ordered steps|Overall Platform Buildout Phase 13]] uses this completed gate for the API publication step; [[../SedaiaPlatformBuildout/Phase 14 - Final Production Verification#Ordered steps|Phase 14]] independently re-verifies the accepted revision, evidence, rollback, monitoring, and legacy-platform state.

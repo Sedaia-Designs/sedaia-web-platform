@@ -12,7 +12,7 @@ Establish one current source of truth for deployment ownership, preserve histori
 - [x] Update `../../../README.md` and `../../../operations/ROLLBACK_AND_OBSERVABILITY.md` to distinguish routine deployment, break-glass deployment, rollback, evidence storage, retention, and responsible identities without future-tense or App Engine ownership language.
 - [x] Update [[../../Archives/Plans/GCloudCloudRunSetup/Orchestration|Google Cloud Run setup]] to point remaining work to this remediation plan while preserving its phase evidence.
 - [x] Reclassify [[../../Archives/Plans/ProductionReadiness/Orchestration|Production readiness]] and [[../../Archives/Plans/GitHubActionsMigration/Orchestration|GitHub Actions migration]] as superseded, historical, or still-active only for named non-overlapping items. Correct their App Engine-era statements rather than silently leaving conflicting instructions active.
-- [x] Update `../README.md` so every active plan has an accurate status and no superseded plan appears independently executable.
+- [x] Update `../README.md` so every active plan has an accurate status and no superseded plan appears independently executable.[^platform-authority]
 
 ## Evidence — 2026-09-20 reconciliation (observed 2026-09-21T03:36:37Z)
 
@@ -44,3 +44,5 @@ Establish one current source of truth for deployment ownership, preserve histori
 ## Exit criterion
 
 One routine deployment path, one compatible rollback evidence path, and one authoritative remediation plan are named consistently across active documentation and automation. No active note directs an operator to deploy the API through App Engine.
+
+[^platform-authority]: [[../SedaiaPlatformBuildout/Phase 00 - Audit and Authority Reconciliation#Ordered steps|Overall Platform Buildout Phase 00]] owns the repository-wide authority map and requires every active-plan relationship and historical-plan disposition to be accurate; this remediation phase remains the narrower authority for the API runtime.
