@@ -51,7 +51,7 @@ metadata_body="${response_directory}/metadata.json"
 metadata_headers="${response_directory}/metadata-headers.txt"
 metadata_status="$(request_json "${metadata_path}" "${metadata_body}" "${metadata_headers}")"
 
-if [ "${metadata_status}" != "200" ]; then
+if [ "${metadata_status}" = "404" ]; then
   if [ "${revision}" != "${legacy_revision}" ] || [ "${image_digest}" != "${legacy_digest}" ]; then
     printf 'Canonical pre-deploy metadata failed for unapproved revision %s (HTTP %s).\n' "${revision}" "${metadata_status}" >&2
     exit 1
@@ -60,10 +60,19 @@ if [ "${metadata_status}" != "200" ]; then
   metadata_status="$(request_json "${metadata_path}" "${metadata_body}" "${metadata_headers}")"
 fi
 
-if [ "${metadata_status}" != "200" ] || ! is_json_response "${metadata_headers}" ||
-  ! jq --exit-status 'type == "object"' "${metadata_body}" >/dev/null; then
+if [ "${metadata_status}" != "200" ] || ! is_json_response "${metadata_headers}"; then
   printf 'Pre-deploy metadata verification failed for %s at %s (HTTP %s).\n' \
     "${revision}" "${metadata_path}" "${metadata_status}" >&2
+  exit 1
+fi
+
+if [ "${metadata_path}" = '/v1' ]; then
+  metadata_filter='type == "object" and keys == ["name", "version"] and .name == "Sedaia Designs API" and .version == "v1"'
+else
+  metadata_filter='type == "object"'
+fi
+if ! jq --exit-status "${metadata_filter}" "${metadata_body}" >/dev/null; then
+  printf 'Pre-deploy metadata response failed validation for %s at %s.\n' "${revision}" "${metadata_path}" >&2
   exit 1
 fi
 
@@ -73,10 +82,12 @@ jq --null-input \
   --arg readiness_url "${base_url}/health/ready" \
   --arg metadata_url "${base_url}${metadata_path}" \
   --arg metadata_path "${metadata_path}" \
+  --slurpfile metadata_response "${metadata_body}" \
   --argjson legacy_compatibility "$([ "${metadata_path}" = '/v1/' ] && printf true || printf false)" \
   '{checked_at: $checked_at, revision: $revision, image_digest: $image_digest,
     readiness: {passed: true, http_status: 200, url: $readiness_url},
-    api_metadata: {passed: true, http_status: 200, url: $metadata_url, path: $metadata_path},
+    api_metadata: {passed: true, http_status: 200, url: $metadata_url, path: $metadata_path,
+      response: $metadata_response[0]},
     legacy_compatibility: {used: $legacy_compatibility,
       reason: (if $legacy_compatibility then "Pinned pre-Phase-01 serving revision exposes metadata at /v1/." else null end)}}' \
   > "${result_file}"

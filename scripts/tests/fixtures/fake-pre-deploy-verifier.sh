@@ -24,4 +24,6 @@ else
 fi
 
 jq --null-input --arg path "${path}" --argjson legacy "${legacy}" \
-  '{readiness: {passed: true}, api_metadata: {passed: true, path: $path}, legacy_compatibility: {used: $legacy}}' > "${output}"
+  '{readiness: {passed: true}, api_metadata: {passed: true, path: $path,
+    response: {name: "Sedaia Designs API", version: (if $legacy then "legacy" else "v1" end)}},
+    legacy_compatibility: {used: $legacy}}' > "${output}"

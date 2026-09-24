@@ -126,7 +126,10 @@ run_pre_deploy_case() {
     exit 1
   fi
   if [ "${expected_result}" = pass ]; then
-    jq --exit-status --arg path "${expected_path}" '.readiness.passed and .api_metadata.path == $path' \
+    jq --exit-status --arg path "${expected_path}" '
+      .readiness.passed and .api_metadata.path == $path and
+      (.api_metadata.response | type == "object" and length > 0)
+    ' \
       "${result_file}" >/dev/null
   elif [ -e "${result_file}" ]; then
     printf 'Failed pre-deploy scenario unexpectedly produced evidence.\n' >&2
@@ -140,3 +143,5 @@ run_pre_deploy_case valid sedaia-api-current sha256:cccccccccccccccccccccccccccc
 run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 "${legacy_digest}" pass /v1/
 run_pre_deploy_case legacy-metadata sedaia-api-unknown "${legacy_digest}" fail ''
 run_pre_deploy_case legacy-metadata sedaia-api-00006-xb4 sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd fail ''
+run_pre_deploy_case metadata-unavailable sedaia-api-00006-xb4 "${legacy_digest}" fail ''
+run_pre_deploy_case invalid-canonical-metadata sedaia-api-current sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc fail ''

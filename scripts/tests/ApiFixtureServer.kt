@@ -33,10 +33,11 @@ private fun readiness(exchange: HttpExchange) {
 
 private fun api(exchange: HttpExchange) {
   if (exchange.requestURI.path == "/v1") {
-    if (scenario == "legacy-metadata") {
-      exchange.respond(404, "{\"error\":\"Not Found\"}")
-    } else {
-      exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
+    when (scenario) {
+      "legacy-metadata" -> exchange.respond(404, "{\"error\":\"Not Found\"}")
+      "metadata-unavailable" -> exchange.respond(503, "{\"error\":\"Unavailable\"}")
+      "invalid-canonical-metadata" -> exchange.respond(200, "{\"name\":\"Wrong API\",\"version\":\"v1\"}")
+      else -> exchange.respond(200, "{\"name\":\"Sedaia Designs API\",\"version\":\"v1\"}")
     }
     return
   }

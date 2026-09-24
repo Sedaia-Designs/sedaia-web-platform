@@ -50,6 +50,8 @@ upload_line="$(grep -n 'storage cp.*/12345678-1234-1234-1234-123456789abc/' "${s
 ! grep -q -- '--to-latest' "${success_log}"
 jq -e '.verification.pre_deploy_generated_service_url.api_metadata.path == "/v1"' \
   "${test_directory}/success-evidence/release.json" >/dev/null
+jq -e '.verification.pre_deploy_generated_service_url.api_metadata.response.version == "v1"' \
+  "${test_directory}/success-evidence/release.json" >/dev/null
 
 export USE_LEGACY_PRE_DEPLOY=true
 run_scenario legacy-pre-deploy
@@ -57,6 +59,7 @@ jq -e '
   .status == "known-good" and
   .verification.pre_deploy_generated_service_url.legacy_compatibility.used and
   .verification.pre_deploy_generated_service_url.api_metadata.path == "/v1/" and
+  .verification.pre_deploy_generated_service_url.api_metadata.response.version == "legacy" and
   .verification.candidate.api_metadata.passed
 ' "${test_directory}/legacy-pre-deploy-evidence/release.json" >/dev/null
 legacy_log="${test_directory}/legacy-pre-deploy-state/commands.log"
